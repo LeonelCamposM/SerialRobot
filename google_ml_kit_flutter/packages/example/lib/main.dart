@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-
 import 'nlp_detector_views/entity_extraction_view.dart';
 import 'nlp_detector_views/language_identifier_view.dart';
 import 'nlp_detector_views/language_translator_view.dart';
@@ -43,6 +41,7 @@ class MyApp extends StatelessWidget {
     ));
   }
 }
+
 class MLKitView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

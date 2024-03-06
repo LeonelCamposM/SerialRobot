@@ -13,7 +13,7 @@ class SerialRobotView extends StatefulWidget {
 
 class _SerialRobotView extends State<SerialRobotView> {
   UsbPort? _port;
-  String _status = "Idle";
+  String _status = 'Idle';
   List<Widget> _ports = [];
   final List<Widget> _serialData = [];
 
@@ -78,7 +78,7 @@ class _SerialRobotView extends State<SerialRobotView> {
     if (device == null) {
       _device = null;
       setState(() {
-        _status = "Disconnected";
+        _status = 'Disconnected';
       });
       return true;
     }
@@ -86,7 +86,7 @@ class _SerialRobotView extends State<SerialRobotView> {
     _port = await device.create();
     if (await (_port!.open()) != true) {
       setState(() {
-        _status = "Failed to open port";
+        _status = 'Failed to open port';
       });
       return false;
     }
@@ -110,7 +110,7 @@ class _SerialRobotView extends State<SerialRobotView> {
    
 
     setState(() {
-      _status = "Connected";
+      _status = 'Connected';
     });
     return true;
   }
@@ -119,7 +119,7 @@ class _SerialRobotView extends State<SerialRobotView> {
       print('Serial port is not connected.');
       return;
     }
-    String data = "$command\r\n";
+    final String data = '$command\r\n';
     await _port!.write(Uint8List.fromList(data.codeUnits));
     print('sendend');
     print(command);
@@ -127,19 +127,19 @@ class _SerialRobotView extends State<SerialRobotView> {
 
   void _getPorts() async {
     _ports = [];
-    List<UsbDevice> devices = await UsbSerial.listDevices();
+    final List<UsbDevice> devices = await UsbSerial.listDevices();
     if (!devices.contains(_device)) {
       _connectTo(null);
     }
     print(devices);
 
-    for (var device in devices) {
+    for (final device in devices) {
       _ports.add(ListTile(
           leading: const Icon(Icons.usb),
           title: Text(device.productName!),
           subtitle: Text(device.manufacturerName!),
           trailing: ElevatedButton(
-            child: Text(_device == device ? "Disconnect" : "Connect"),
+            child: Text(_device == device ? 'Disconnect' : 'Connect'),
             onPressed: () {
               _connectTo(_device == device ? null : device).then((res) {
                 _getPorts();
@@ -173,11 +173,11 @@ class _SerialRobotView extends State<SerialRobotView> {
   @override
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
-        Text(_ports.isNotEmpty ? "Available Serial Ports" : "No serial devices available", style: Theme.of(context).textTheme.titleLarge),
+        Text(_ports.isNotEmpty ? 'Available Serial Ports' : 'No serial devices available', style: Theme.of(context).textTheme.titleLarge),
         ..._ports,
         Text('Status: $_status\n'),
         Text('info: ${_port.toString()}\n'),
-        Text("Result Data", style: Theme.of(context).textTheme.titleLarge),
+        Text('Result Data', style: Theme.of(context).textTheme.titleLarge),
         ..._serialData,
       ]);
   }
