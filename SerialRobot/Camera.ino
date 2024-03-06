@@ -42,12 +42,12 @@ void SetupCamera() {
   config.pin_pwdn = PWDN_GPIO_NUM;
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
-  config.frame_size = FRAMESIZE_QVGA;  // Lower resolution
-  config.jpeg_quality = 12;            // Lower JPEG quality for more compression
-  config.fb_count = 1;                 // Fewer frame buffers to save memory
+  config.frame_size = FRAMESIZE_UXGA;
+  config.pixel_format = PIXFORMAT_JPEG;
   config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
   config.fb_location = CAMERA_FB_IN_PSRAM;
   config.jpeg_quality = 12;
+  config.fb_count = 1;
   if (config.pixel_format == PIXFORMAT_JPEG) {
     if (psramFound()) {
       config.jpeg_quality = 10;
@@ -77,11 +77,15 @@ String takePhoto() {
     return "";
   }
 
-  String imageBase64;
-  if (fb->format == PIXFORMAT_JPEG) {
-    imageBase64 = base64::encode(fb->buf, fb->len);
+  if (fb->format != PIXFORMAT_JPEG) {
+    esp_camera_fb_return(fb);
+    return "";
   }
 
-  esp_camera_fb_return(fb);  // Always return the frame buffer
+  // Encode image data as Base64
+  String imageBase64 = base64::encode(fb->buf, fb->len);
+  Serial.println("Base64 Image String:");
+  Serial.println(imageBase64);
+  esp_camera_fb_return(fb);
   return imageBase64;
 }

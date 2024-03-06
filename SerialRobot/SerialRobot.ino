@@ -1,8 +1,9 @@
-
 void setup() {
   Serial.begin(115200);
   Serial.println();
   SetupMotorDriver();
+  SetupCamera();
+  SetupSensors();
 }
 
 void loop() {
@@ -18,16 +19,22 @@ void loop() {
       goForward();
     } else if (command == "down") {
       goBackward();
-      Serial.println("down2");
     } else if (command == "left") {
       goLeft();
     } else if (command == "right") {
       goRight();
     } else if (command == "stop") {
       stopMovement();
-      Serial.println("stop2");
+    } else if (command == "photo") {
+      String photoInfo = takePhoto();
+      Serial.println("{\"img\":\"" + photoInfo + "\"}");
+    }  else if (command == "sensors") {
+      String distance = String(getDistance());
+      String frontLineDetected = String(isFrontLineDetected());
+      String backLineDetected = String(isBackLineDetected());
+      Serial.println("{\"distance\":" + distance + ", \"frontLineDetected\":" + frontLineDetected + ", \"backLineDetected\":" + backLineDetected + "}");
     } else {
-      Serial.println("Invalid command");
+      Serial.println("{\"error\":\"Invalid command\"}");
     }
   }
 }

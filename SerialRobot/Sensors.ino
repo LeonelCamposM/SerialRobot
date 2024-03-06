@@ -29,11 +29,11 @@ int getDistance() {
 }
 
 // Method to check if the line is detected by the front sensor
-bool isFrontLineDetected() {
-  return digitalRead(FRONT_SENSOR) == HIGH;
+int isFrontLineDetected() {
+  return digitalRead(FRONT_SENSOR);
 }
 
 // Method to check if the line is detected by the back sensor
-bool isBackLineDetected() {
-  return digitalRead(BACK_SENSOR) == HIGH;
+int isBackLineDetected() {
+  return digitalRead(BACK_SENSOR);
 }
