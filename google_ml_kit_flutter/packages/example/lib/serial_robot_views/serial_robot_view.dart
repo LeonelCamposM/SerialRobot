@@ -135,6 +135,7 @@ class _SerialRobotView extends State<SerialRobotView> {
           final Widget image = Image.memory(bytes);
 
           // Update the UI to display the image
+          _serialData.clear();
           setState(() {
             _serialData.add(SizedBox(height: 150, width: 150, child: image));
           });
