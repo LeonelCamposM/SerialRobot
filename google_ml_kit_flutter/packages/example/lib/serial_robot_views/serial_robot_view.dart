@@ -115,49 +115,56 @@ class _SerialRobotView extends State<SerialRobotView> {
     return true;
   }
 
+  // Add a new buffer string to store the incoming data parts
+  String _dataBuffer = '';
+
   void _handleResponseData(String line) {
-    // Check if the line is JSON-formatted
     try {
       final jsonData = json.decode(line);
-      // Assuming jsonData is a Map, you can process it further as needed
-      // Check if jsonData contains an image in Base64
-      if (jsonData.containsKey('img')) {
-        // Decode the Base64 string to bytes
-        final String base64String = jsonData['img'];
-        final Uint8List bytes = base64.decode(base64String);
+      // Check if jsonData contains a part of the image
+      if (jsonData.containsKey('part')) {
+        // Append the part of the image to the buffer
+        _dataBuffer += jsonData['part'];
 
-        // Create an Image widget from bytes
-        final Widget image = Image.memory(bytes);
-        setState(() {
-          _serialData.add(
-            SizedBox(height: 150, 
-                      width: 150,
-                      child: image));
-        });
+        // If it's the last part of the image
+        if (jsonData.containsKey('end')) {
+          // Decode the Base64 string to bytes
+          final Uint8List bytes = base64.decode(_dataBuffer);
+
+          // Create an Image widget from bytes
+          final Widget image = Image.memory(bytes);
+
+          // Update the UI to display the image
+          setState(() {
+            _serialData.add(SizedBox(height: 150, width: 150, child: image));
+          });
+
+          // Clear the buffer for the next image
+          _dataBuffer = '';
+        }
       } else {
-        // If not an image, process as normal
+        // If not a part of the image, process as normal
         setState(() {
           _serialData.add(Text('Data: $jsonData'));
         });
       }
     } catch (e, stackTrace) {
       // Log the error and stack trace for detailed debugging information
-     _serialData.add(Text('Error parsing JSON: $e'));
-     _serialData.add(Text('Stack Trace: $stackTrace'));
-
-      // Handle specific error types differently (optional)
-      if (e is FormatException) {
-         _serialData.add(Text('The provided string is not valid JSON.'));
-      } else if (e is TypeError) {
-        _serialData.add(Text('The decoded value has an unexpected type.'));
-      } else {
-        _serialData.add(Text('An unexpected error occurred.'));
-      }
-
-      // Update the UI to indicate an error
       setState(() {
-        _serialData.add(Text("Error encountered"));
-        _serialData.add(Text(line));
+        _serialData.add(Text('Error parsing JSON: $e'));
+        _serialData.add(Text('Stack Trace: $stackTrace'));
+
+        // Handle specific error types differently (optional)
+        if (e is FormatException) {
+          _serialData.add(Text('The provided string is not valid JSON.'));
+        } else if (e is TypeError) {
+          _serialData.add(Text('The decoded value has an unexpected type.'));
+        } else {
+          _serialData.add(Text('An unexpected error occurred.'));
+        }
+
+        // Optionally, you might want to clear the buffer in case of an error
+        _dataBuffer = '';
       });
     }
   }
