@@ -33,6 +33,15 @@ class _SerialRobotView extends State<SerialRobotView> {
     _serialService.sendSerialData(command);
   }
 
+  void _sendCommandSequence() async {
+  final List<String> commands = ['up', 'up', 'stop']; 
+  for (String command in commands) {
+    _serialService.sendSerialData(command);
+    await Future.delayed(Duration(milliseconds: 500));
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -84,6 +93,10 @@ class _SerialRobotView extends State<SerialRobotView> {
               ),
             ),
           ),
+        ),
+         ElevatedButton(
+          onPressed: _sendCommandSequence,
+          child: Text('Execute Sequence'),
         ),
       ],
     );
