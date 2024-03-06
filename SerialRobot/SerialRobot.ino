@@ -6,6 +6,20 @@ void setup() {
   SetupSensors();
 }
 
+void sendInParts(String data, int partSize) {
+  for (int i = 0; i < data.length(); i += partSize) {
+    String part = data.substring(i, min((unsigned int)(i + partSize), data.length()));
+    Serial.print("{\"part\":\"");
+    Serial.print(part);
+    if (i + partSize < data.length()) {
+      Serial.println("\",\"cont\":true}");
+    } else {
+      // Indica que esta es la última parte
+      Serial.println("\",\"end\":true}");
+    }
+  }
+}
+
 void loop() {
   if (Serial.available() > 0) {
     // Read the incoming string until a newline character is received
@@ -27,7 +41,7 @@ void loop() {
       stopMovement();
     } else if (command == "photo") {
       String photoInfo = takePhoto();
-      Serial.println("{\"img\":\"" + photoInfo + "\"}");
+      sendInParts(photoInfo, 200); 
     }  else if (command == "sensors") {
       String distance = String(getDistance());
       String frontLineDetected = String(isFrontLineDetected());

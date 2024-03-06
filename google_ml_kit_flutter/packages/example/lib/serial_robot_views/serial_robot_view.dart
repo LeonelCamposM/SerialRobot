@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:usb_serial/transaction.dart';
-import 'package:usb_serial/usb_serial.dart';
+import 'package:usb_serial/usb_serial.dart'; 
 
 class SerialRobotView extends StatefulWidget {
   const SerialRobotView({super.key});
@@ -16,6 +18,7 @@ class _SerialRobotView extends State<SerialRobotView> {
   String _status = 'Idle';
   List<Widget> _ports = [];
   final List<Widget> _serialData = [];
+  final TextEditingController _textController = TextEditingController();
 
   StreamSubscription<String>? _subscription;
   Transaction<String>? _transaction;
@@ -100,10 +103,7 @@ class _SerialRobotView extends State<SerialRobotView> {
 
     _subscription = _transaction!.stream.listen((String line) {
       setState(() {
-        _serialData.add(Text(line));
-        if (_serialData.length > 20) {
-          _serialData.removeAt(0);
-        }
+        _handleResponseData(line);
       });
     });
 
@@ -114,6 +114,54 @@ class _SerialRobotView extends State<SerialRobotView> {
     });
     return true;
   }
+
+  void _handleResponseData(String line) {
+    // Check if the line is JSON-formatted
+    try {
+      final jsonData = json.decode(line);
+      // Assuming jsonData is a Map, you can process it further as needed
+      // Check if jsonData contains an image in Base64
+      if (jsonData.containsKey('img')) {
+        // Decode the Base64 string to bytes
+        final String base64String = jsonData['img'];
+        final Uint8List bytes = base64.decode(base64String);
+
+        // Create an Image widget from bytes
+        final Widget image = Image.memory(bytes);
+        setState(() {
+          _serialData.add(
+            SizedBox(height: 150, 
+                      width: 150,
+                      child: image));
+        });
+      } else {
+        // If not an image, process as normal
+        setState(() {
+          _serialData.add(Text('Data: $jsonData'));
+        });
+      }
+    } catch (e, stackTrace) {
+      // Log the error and stack trace for detailed debugging information
+     _serialData.add(Text('Error parsing JSON: $e'));
+     _serialData.add(Text('Stack Trace: $stackTrace'));
+
+      // Handle specific error types differently (optional)
+      if (e is FormatException) {
+         _serialData.add(Text('The provided string is not valid JSON.'));
+      } else if (e is TypeError) {
+        _serialData.add(Text('The decoded value has an unexpected type.'));
+      } else {
+        _serialData.add(Text('An unexpected error occurred.'));
+      }
+
+      // Update the UI to indicate an error
+      setState(() {
+        _serialData.add(Text("Error encountered"));
+        _serialData.add(Text(line));
+      });
+    }
+  }
+
   Future<void> _sendSerialData(String command) async {
     if (_port == null) {
       print('Serial port is not connected.');
@@ -166,19 +214,45 @@ class _SerialRobotView extends State<SerialRobotView> {
 
   @override
   void dispose() {
+    _textController.dispose(); 
     super.dispose();
     _connectTo(null);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: <Widget>[
+    return Column(
+      children: <Widget>[
         Text(_ports.isNotEmpty ? 'Available Serial Ports' : 'No serial devices available', style: Theme.of(context).textTheme.titleLarge),
         ..._ports,
         Text('Status: $_status\n'),
-        Text('info: ${_port.toString()}\n'),
+        Text('Info: ${_port.toString()}\n'),
         Text('Result Data', style: Theme.of(context).textTheme.titleLarge),
-        ..._serialData,
-      ]);
+        SizedBox(
+          height: 200, 
+          width: 200, 
+          child: ListView.builder(
+            itemCount: _serialData.length,
+            itemBuilder: (context, index) => _serialData[index],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            controller: _textController,
+            decoration: InputDecoration(
+              labelText: 'Enter command',
+              suffixIcon: IconButton(
+                icon: Icon(Icons.send),
+                onPressed: () {
+                  _sendSerialData(_textController.text);
+                  _textController.clear(); // Limpia el campo después de enviar
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

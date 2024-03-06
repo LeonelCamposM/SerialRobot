@@ -53,16 +53,9 @@ void SetupCamera() {
       config.jpeg_quality = 10;
       config.fb_count = 2;
       config.grab_mode = CAMERA_GRAB_LATEST;
-    } else {
-      config.frame_size = FRAMESIZE_SVGA;
-      config.fb_location = CAMERA_FB_IN_DRAM;
     }
-  } else {
-    config.frame_size = FRAMESIZE_240X240;
-#if CONFIG_IDF_TARGET_ESP32S3
-    config.fb_count = 2;
-#endif
   }
+
   esp_err_t err = esp_camera_init(&config);
   if (err != ESP_OK) {
     Serial.printf("Camera init failed with error 0x%x", err);
@@ -84,8 +77,6 @@ String takePhoto() {
 
   // Encode image data as Base64
   String imageBase64 = base64::encode(fb->buf, fb->len);
-  Serial.println("Base64 Image String:");
-  Serial.println(imageBase64);
   esp_camera_fb_return(fb);
   return imageBase64;
 }
