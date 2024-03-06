@@ -51,5 +51,9 @@ void loop() {
       Serial.println("{\"error\":\"Invalid command\"}");
     }
   }
+  String distance = String(getDistance());
+  String frontLineDetected = String(isFrontLineDetected());
+  String backLineDetected = String(isBackLineDetected());
+  Serial.println("{\"distance\":" + distance + ", \"frontLineDetected\":" + frontLineDetected + ", \"backLineDetected\":" + backLineDetected + "}");
 }
 

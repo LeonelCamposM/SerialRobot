@@ -23,7 +23,7 @@ class _SerialRobotView extends State<SerialRobotView> {
   StreamSubscription<String>? _subscription;
   Transaction<String>? _transaction;
   UsbDevice? _device;
-
+  String sensorsData = '';
 
   bool _handleKeyboardEvent(KeyEvent event) {
     // Check if the key is down event
@@ -143,7 +143,12 @@ class _SerialRobotView extends State<SerialRobotView> {
           // Clear the buffer for the next image
           _dataBuffer = '';
         }
-      } else {
+      } else if (jsonData.containsKey('distance')) {
+          setState(() {
+            sensorsData = line;
+          });
+
+        }else {
         // If not a part of the image, process as normal
         setState(() {
           _serialData.add(Text('Data: $jsonData'));
@@ -236,6 +241,7 @@ class _SerialRobotView extends State<SerialRobotView> {
         Text('Status: $_status\n'),
         Text('Info: ${_port.toString()}\n'),
         Text('Result Data', style: Theme.of(context).textTheme.titleLarge),
+        Text('sensors Data: $sensorsData'),
         SizedBox(
           height: 200, 
           width: 200, 
