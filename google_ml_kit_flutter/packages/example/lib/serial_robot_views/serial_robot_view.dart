@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'serial_service.dart';
@@ -34,12 +36,40 @@ class _SerialRobotView extends State<SerialRobotView> {
   }
 
   void _sendCommandSequence() async {
-  final List<String> commands = ['up', 'up', 'stop']; 
-  for (String command in commands) {
-    _serialService.sendSerialData(command);
-    await Future.delayed(Duration(milliseconds: 500));
+    final List<String> commands = ['up', 'up', 'stop']; 
+    for (final String command in commands) {
+      _serialService.sendSerialData(command);
+      await Future.delayed(Duration(milliseconds: 500));
+    }
   }
+
+  void _followLine() {
+  _serialService.dataStream.listen((data) {
+    final Map<String, dynamic> sensorData = json.decode(data);
+    final int rightLineDetected = sensorData['rightLineDetected'];
+    final int leftLineDetected = sensorData['leftLineDetected'];
+    final int distance = sensorData['distance'];
+
+    if (distance < 40) {
+      _sendSerialData('stop');
+    } else {
+      if (rightLineDetected == 1 && leftLineDetected == 0) {
+        // Si no se detecta línea a la derecha, gira a la derecha.
+        _sendSerialData('right');
+      } else if (rightLineDetected == 0 && leftLineDetected == 1) {
+        // Si no se detecta línea a la izquierda, gira a la izquierda.
+        _sendSerialData('left');
+      } else if (rightLineDetected == 1 && leftLineDetected == 1) {
+        // Si ambas líneas están detectadas, retrocede
+        _sendSerialData('down');
+      }else{
+        _sendSerialData('up');
+      }
+    }
+  });
 }
+
+
 
 
   @override
@@ -94,9 +124,9 @@ class _SerialRobotView extends State<SerialRobotView> {
             ),
           ),
         ),
-         ElevatedButton(
-          onPressed: _sendCommandSequence,
-          child: Text('Execute Sequence'),
+        ElevatedButton(
+          onPressed: _followLine,
+          child: Text('Start line following'),
         ),
       ],
     );

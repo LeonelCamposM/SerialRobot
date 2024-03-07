@@ -1,3 +1,5 @@
+bool shouldStream = false;
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
@@ -29,7 +31,12 @@ void loop() {
     command.trim();
 
     // Decide the action based on the command
-    if (command == "up") {
+    if (command == "start_stream") {
+      shouldStream = true;
+    } else if (command == "stop_stream") {
+      shouldStream = false;
+    }
+    else if (command == "up") {
       goForward();
     } else if (command == "down") {
       goBackward();
@@ -46,14 +53,16 @@ void loop() {
       String distance = String(getDistance());
       String frontLineDetected = String(isFrontLineDetected());
       String backLineDetected = String(isBackLineDetected());
-      Serial.println("{\"distance\":" + distance + ", \"frontLineDetected\":" + frontLineDetected + ", \"backLineDetected\":" + backLineDetected + "}");
+      Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + frontLineDetected + ", \"leftLineDetected\":" + backLineDetected + "}");
     } else {
       Serial.println("{\"error\":\"Invalid command\"}");
     }
   }
-  String distance = String(getDistance());
-  String frontLineDetected = String(isFrontLineDetected());
-  String backLineDetected = String(isBackLineDetected());
-  Serial.println("{\"distance\":" + distance + ", \"frontLineDetected\":" + frontLineDetected + ", \"backLineDetected\":" + backLineDetected + "}");
+  if(shouldStream) {
+    String distance = String(getDistance());
+    String frontLineDetected = String(isFrontLineDetected());
+    String backLineDetected = String(isBackLineDetected());
+    Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + frontLineDetected + ", \"leftLineDetected\":" + backLineDetected + "}");
+  }
 }
 
