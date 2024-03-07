@@ -1,4 +1,5 @@
 bool shouldStream = false;
+int robotSpeed = 255;
 
 void setup() {
   Serial.begin(115200);
@@ -35,15 +36,18 @@ void loop() {
       shouldStream = true;
     } else if (command == "stop_stream") {
       shouldStream = false;
+    }else if (command.startsWith("set_speed")) {
+      int speed = command.substring(10).toInt();
+      robotSpeed = speed;
     }
     else if (command == "up") {
-      goForward();
+      goForward(robotSpeed);
     } else if (command == "down") {
-      goBackward();
+      goBackward(robotSpeed);
     } else if (command == "left") {
-      goLeft();
+      goLeft(robotSpeed);
     } else if (command == "right") {
-      goRight();
+      goRight(robotSpeed);
     } else if (command == "stop") {
       stopMovement();
     } else if (command == "photo") {

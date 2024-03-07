@@ -69,9 +69,6 @@ class _SerialRobotView extends State<SerialRobotView> {
   });
 }
 
-
-
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -102,7 +99,7 @@ class _SerialRobotView extends State<SerialRobotView> {
             return Text('Status: ${snapshot.data ?? 'Idle'}\n');
           },
         ),
-         StreamBuilder<String>(
+        StreamBuilder<String>(
           stream: _serialService.dataStream,
           builder: (context, snapshot) {
             return Text('Data: ${snapshot.data ?? 'N/A'}\n');

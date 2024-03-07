@@ -29,24 +29,24 @@ void controlMotorB(bool direction, int speed) {
   analogWrite(motorBPWM, speed);
 }
 
-void goForward() {
-  controlMotorA(false, 255);
-  controlMotorB(false, 255);
+void goForward(int speed) {
+  controlMotorA(false, speed);
+  controlMotorB(false, speed);
 }
 
-void goBackward() {
-  controlMotorA(true, 255);
-  controlMotorB(true, 255);
+void goBackward(int speed) {
+  controlMotorA(true, speed);
+  controlMotorB(true, speed);
 }
 
-void goRight() {
-  controlMotorA(false, 255);
-  controlMotorB(true, 255);
+void goRight(int speed) {
+  controlMotorA(false, speed);
+  controlMotorB(true, speed);
 }
 
-void goLeft() {
-  controlMotorA(true, 255);
-  controlMotorB(false, 255);
+void goLeft(int speed) {
+  controlMotorA(true, speed);
+  controlMotorB(false, speed);
 }
 
 void stopMovement() {
