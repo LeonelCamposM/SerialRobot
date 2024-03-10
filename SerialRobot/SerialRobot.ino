@@ -1,5 +1,5 @@
 bool shouldStream = false;
-int robotSpeed = 255;
+int robotSpeed = 140;
 
 void setup() {
   Serial.begin(115200);
@@ -19,21 +19,71 @@ void sendInParts(String data, int partSize) {
     if (i + partSize < data.length()) {
       Serial.println("\",\"cont\":true}");
     } else {
-      // Indica que esta es la última parte
       Serial.println("\",\"end\":true}");
     }
   }
 }
 
+void lineFollower() {
+  int rightLineDetected = isRightLineDetected(); 
+  int leftLineDetected = isLeftLineDetected();  
+  if (rightLineDetected == 0 && leftLineDetected == 0) {
+    Serial.println("{\"followerstate\":\"noLineDetected" "\"}");
+    digitalWrite(LED_BUILTIN, LOW); 
+    goForward(120);
+    delay(100);
+  } else if(leftLineDetected == 1 && rightLineDetected == 1){
+    Serial.println("{\"followerstate\":\"bothLinesDetected" "\"}");
+    digitalWrite(LED_BUILTIN, HIGH);
+    stopMovement();
+    delay(100);
+  }
+  else if (rightLineDetected == 1 && leftLineDetected == 0) {
+    Serial.println("{\"followerstate\":\"rightLineDetected" "\"}");
+    digitalWrite(LED_BUILTIN, LOW);
+    goRight(120);
+    delay(100); 
+  }
+  else if (leftLineDetected == 1 && rightLineDetected == 0) {
+    Serial.println("{\"followerstate\":\"leftLineDetected" "\"}");
+    digitalWrite(LED_BUILTIN, LOW);
+    goLeft(120);
+    delay(100); 
+  }
+}
+
+void sumoBot(){
+  int distance = getDistance();
+  if (isRightLineDetected() == 1 || isLeftLineDetected() == 1) {
+    digitalWrite(LED_BUILTIN, HIGH);
+    stopMovement();
+    goBackward(255);
+    delay(800);
+    goRight(120);
+    delay(500);
+  } else {
+    if (distance <= 80) {
+      digitalWrite(LED_BUILTIN, LOW);
+      goForward(255);
+    } else {
+      digitalWrite(LED_BUILTIN, HIGH);
+      goForward(180);
+    }
+  }
+}
+
+void printSensorsData(){
+  String distance = String(getDistance());
+  String rightLineDetected = String(isRightLineDetected());
+  String leftLineDetected = String(isLeftLineDetected());
+  Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + rightLineDetected + ", \"leftLineDetected\":" + leftLineDetected + "}");
+}
+
 void loop() {
   if (Serial.available() > 0) {
-    // Read the incoming string until a newline character is received
     String command = Serial.readStringUntil('\n');
-
-    // Remove any whitespace or carriage return characters
     command.trim();
 
-    // Decide the action based on the command
     if (command == "start_stream") {
       shouldStream = true;
     } else if (command == "stop_stream") {
@@ -56,43 +106,19 @@ void loop() {
       String photoInfo = takePhoto();
       sendInParts(photoInfo, 200); 
     }  else if (command == "sensors") {
-      String distance = String(getDistance());
-      String frontLineDetected = String(isFrontLineDetected());
-      String backLineDetected = String(isBackLineDetected());
-      Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + frontLineDetected + ", \"leftLineDetected\":" + backLineDetected + "}");
+      printSensorsData();
     }  else if (command == "sumo") {
+      // Realtime desicion making
       while (true) {
-        // Realtime desicion making
-        int distance = getDistance();
-        String frontLineDetected = String(isFrontLineDetected());
-        String backLineDetected = String(isBackLineDetected());
-        if (isFrontLineDetected() == 1 || isBackLineDetected() == 1) {
-          digitalWrite(LED_BUILTIN, HIGH);
-          stopMovement();
-          goBackward(255);
-          delay(800);
-          goRight(120);
-          delay(500);
-        } else {
-          if (distance <= 80) {
-            digitalWrite(LED_BUILTIN, LOW);
-            goForward(255);
-          } else {
-            digitalWrite(LED_BUILTIN, HIGH);
-            goForward(180);
-          }
-        }
-      }
+        sumoBot();
+      } 
     } else {
       shouldStream = false;
       Serial.println("{\"error\":\"Invalid command "+ command + "\"}");
     }
-  }
-  if(shouldStream) {
-    String distance = String(getDistance());
-    String frontLineDetected = String(isFrontLineDetected());
-    String backLineDetected = String(isBackLineDetected());
-    Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + frontLineDetected + ", \"leftLineDetected\":" + backLineDetected + "}");
+    if(shouldStream) {
+      printSensorsData();
+    }
   }
 }
 
