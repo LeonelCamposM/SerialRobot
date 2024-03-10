@@ -59,7 +59,8 @@ void loop() {
       String backLineDetected = String(isBackLineDetected());
       Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + frontLineDetected + ", \"leftLineDetected\":" + backLineDetected + "}");
     } else {
-      Serial.println("{\"error\":\"Invalid command\"}");
+      shouldStream = false;
+      Serial.println("{\"error\":\"Invalid command "+ command + "\"}");
     }
   }
   if(shouldStream) {

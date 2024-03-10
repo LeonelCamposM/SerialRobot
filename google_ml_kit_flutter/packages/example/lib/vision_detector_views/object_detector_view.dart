@@ -22,7 +22,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
   int _option = 0;
   final _options = {
     'default': '',
-    'object_custom': 'object_labeler.tflite',
+    'carmelo': 'carmelo.tflite',
   };
 
   @override
@@ -134,7 +134,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         mode: _mode,
         modelPath: modelPath,
         classifyObjects: true,
-        multipleObjects: false,
+        multipleObjects: true,
       );
       _objectDetector = ObjectDetector(options: options);
     }

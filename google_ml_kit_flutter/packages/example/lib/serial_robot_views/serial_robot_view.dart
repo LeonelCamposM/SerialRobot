@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -14,7 +15,9 @@ class SerialRobotView extends StatefulWidget {
 class _SerialRobotView extends State<SerialRobotView> {
   final SerialService _serialService = SerialService();
   final TextEditingController _textController = TextEditingController();
-  
+  StreamSubscription<String>? _streamSubscription;
+
+  String robotState = 'none';
   @override
   void initState() {
     super.initState();
@@ -28,6 +31,7 @@ class _SerialRobotView extends State<SerialRobotView> {
   void dispose() {
     _textController.dispose();
     _serialService.dispose();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
@@ -43,31 +47,53 @@ class _SerialRobotView extends State<SerialRobotView> {
     }
   }
 
-  void _followLine() {
-  _serialService.dataStream.listen((data) {
+  Future<void> _sendCommandWithDelay(String command, Duration delay) async {
+    _sendSerialData(command); // Enviar el comando después del delay.
+    await Future.delayed(delay); // Esperar el delay.
+  }
+
+  void sumoBot() {
+  // Primero, cancelar cualquier suscripción anterior para evitar superposiciones.
+  _streamSubscription?.cancel();
+
+  _streamSubscription = _serialService.dataStream.listen((data) async {
     final Map<String, dynamic> sensorData = json.decode(data);
     final int rightLineDetected = sensorData['rightLineDetected'];
-    final int leftLineDetected = sensorData['leftLineDetected'];
     final int distance = sensorData['distance'];
 
-    if (distance < 40) {
-      _sendSerialData('stop');
-    } else {
-      if (rightLineDetected == 1 && leftLineDetected == 0) {
-        // Si no se detecta línea a la derecha, gira a la derecha.
-        _sendSerialData('right');
-      } else if (rightLineDetected == 0 && leftLineDetected == 1) {
-        // Si no se detecta línea a la izquierda, gira a la izquierda.
-        _sendSerialData('left');
-      } else if (rightLineDetected == 1 && leftLineDetected == 1) {
-        // Si ambas líneas están detectadas, retrocede
-        _sendSerialData('down');
-      }else{
-        _sendSerialData('up');
+    // Evitar enviar más comandos hasta que el actual haya sido procesado.
+    if (!_streamSubscription!.isPaused) {
+      _streamSubscription!.pause(); // Pausar la suscripción para procesar el comando actual.
+      if (distance < 40) {
+        setState(() {
+          robotState = 'Stopped due to close object.';
+        });
+        await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
+      } else if (rightLineDetected == 1) {
+        setState(() {
+          robotState = 'Turning right due to line detected.';
+        });
+        await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
+        await _sendCommandWithDelay('set_speed 255', Duration(milliseconds: 0));
+        await _sendCommandWithDelay('down', Duration(milliseconds: 500));
+        await _sendCommandWithDelay('right', Duration(milliseconds: 500));
+      } else {
+         setState(() {
+          robotState = 'Moving forward.';
+        });
+        await _sendCommandWithDelay('set_speed 180', Duration(milliseconds: 0));
+        await _sendCommandWithDelay('up', Duration(milliseconds: 500));
       }
+      _streamSubscription!.resume(); // Reanudar la suscripción para recibir nuevos datos del sensor.
     }
   });
+
+  _sendSerialData('start_stream');
+  setState(() {
+    robotState = 'Requesting sensor data...';
+  });
 }
+
 
   @override
   Widget build(BuildContext context) {
@@ -122,8 +148,16 @@ class _SerialRobotView extends State<SerialRobotView> {
           ),
         ),
         ElevatedButton(
-          onPressed: _followLine,
-          child: Text('Start line following'),
+          onPressed: sumoBot,
+          child: Text('Start sumobot'),
+        ),
+        ElevatedButton(
+          onPressed: ()=> {_sendSerialData('start_stream')},
+          child: Text('Start stream'),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text('Robot state: $robotState'),
         ),
       ],
     );
