@@ -48,47 +48,43 @@ class _SerialRobotView extends State<SerialRobotView> {
   }
 
   Future<void> _sendCommandWithDelay(String command, Duration delay) async {
-    _sendSerialData(command); // Enviar el comando después del delay.
-    await Future.delayed(delay); // Esperar el delay.
+    _sendSerialData(command); 
+    await Future.delayed(delay); 
   }
 
-  void sumoBot() {
-  // Primero, cancelar cualquier suscripción anterior para evitar superposiciones.
-  _streamSubscription?.cancel();
 
+  // Delayed desicion making, robot must be careful
+  void sumoBot() {
+  _streamSubscription?.cancel();
   _streamSubscription = _serialService.dataStream.listen((data) async {
     final Map<String, dynamic> sensorData = json.decode(data);
     final int rightLineDetected = sensorData['rightLineDetected'];
+    final int leftLineDetected = sensorData['leftLineDetected'];
     final int distance = sensorData['distance'];
-
-    // Evitar enviar más comandos hasta que el actual haya sido procesado.
-    if (!_streamSubscription!.isPaused) {
-      _streamSubscription!.pause(); // Pausar la suscripción para procesar el comando actual.
-      if (distance < 40) {
+    if (distance < 40) {
+      setState(() {
+        robotState = 'Stopped due to close object.';
+      });
+      await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
+    } else if (rightLineDetected == 1 || leftLineDetected  == 1) {
+      setState(() {
+        robotState = 'Turning right due to line detected.';
+      });
+      await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
+      await _sendCommandWithDelay('set_speed 255', Duration(milliseconds: 0));
+      await _sendCommandWithDelay('down', Duration(milliseconds: 500));
+      await _sendCommandWithDelay('right', Duration(milliseconds: 500));
+    } else {
         setState(() {
-          robotState = 'Stopped due to close object.';
-        });
-        await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
-      } else if (rightLineDetected == 1) {
-        setState(() {
-          robotState = 'Turning right due to line detected.';
-        });
-        await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
-        await _sendCommandWithDelay('set_speed 255', Duration(milliseconds: 0));
-        await _sendCommandWithDelay('down', Duration(milliseconds: 500));
-        await _sendCommandWithDelay('right', Duration(milliseconds: 500));
-      } else {
-         setState(() {
-          robotState = 'Moving forward.';
-        });
-        await _sendCommandWithDelay('set_speed 180', Duration(milliseconds: 0));
-        await _sendCommandWithDelay('up', Duration(milliseconds: 500));
-      }
-      _streamSubscription!.resume(); // Reanudar la suscripción para recibir nuevos datos del sensor.
+        robotState = 'Moving forward.';
+      });
+      await _sendCommandWithDelay('set_speed 180', Duration(milliseconds: 0));
+      await _sendCommandWithDelay('up', Duration(milliseconds: 500));
     }
+    _sendSerialData('sensors');
   });
 
-  _sendSerialData('start_stream');
+  _sendSerialData('sensors');
   setState(() {
     robotState = 'Requesting sensor data...';
   });
@@ -148,7 +144,7 @@ class _SerialRobotView extends State<SerialRobotView> {
           ),
         ),
         ElevatedButton(
-          onPressed: sumoBot,
+          onPressed: ()=> {_sendSerialData('sumo')},
           child: Text('Start sumobot'),
         ),
         ElevatedButton(

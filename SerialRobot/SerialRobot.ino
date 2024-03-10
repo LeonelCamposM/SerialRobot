@@ -7,6 +7,8 @@ void setup() {
   SetupMotorDriver();
   SetupCamera();
   SetupSensors();
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void sendInParts(String data, int partSize) {
@@ -58,6 +60,29 @@ void loop() {
       String frontLineDetected = String(isFrontLineDetected());
       String backLineDetected = String(isBackLineDetected());
       Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + frontLineDetected + ", \"leftLineDetected\":" + backLineDetected + "}");
+    }  else if (command == "sumo") {
+      while (true) {
+        // Realtime desicion making
+        int distance = getDistance();
+        String frontLineDetected = String(isFrontLineDetected());
+        String backLineDetected = String(isBackLineDetected());
+        if (isFrontLineDetected() == 1 || isBackLineDetected() == 1) {
+          digitalWrite(LED_BUILTIN, HIGH);
+          stopMovement();
+          goBackward(255);
+          delay(800);
+          goRight(120);
+          delay(500);
+        } else {
+          if (distance <= 80) {
+            digitalWrite(LED_BUILTIN, LOW);
+            goForward(255);
+          } else {
+            digitalWrite(LED_BUILTIN, HIGH);
+            goForward(180);
+          }
+        }
+      }
     } else {
       shouldStream = false;
       Serial.println("{\"error\":\"Invalid command "+ command + "\"}");
