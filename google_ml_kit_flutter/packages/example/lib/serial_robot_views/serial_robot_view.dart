@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:usb_serial/usb_serial.dart';
+import 'gamepad_service.dart';
 import 'serial_service.dart';
 
 class SerialRobotView extends StatefulWidget {
@@ -16,6 +17,7 @@ class _SerialRobotView extends State<SerialRobotView> {
   final SerialService _serialService = SerialService();
   final TextEditingController _textController = TextEditingController();
   StreamSubscription<String>? _streamSubscription;
+  GamepadService? _gamepadService;
 
   String robotState = 'none';
   @override
@@ -32,6 +34,7 @@ class _SerialRobotView extends State<SerialRobotView> {
     _textController.dispose();
     _serialService.dispose();
     _streamSubscription?.cancel();
+    _gamepadService?.dispose();
     super.dispose();
   }
 
@@ -52,6 +55,12 @@ class _SerialRobotView extends State<SerialRobotView> {
     await Future.delayed(delay); 
   }
 
+  void _connectToDevice(UsbDevice device) async {
+    final bool connected = await _serialService.connectTo(device);
+    if (connected) {
+      _gamepadService = GamepadService(_serialService);
+    }
+  }
 
   // Delayed desicion making, robot must be careful
   void sumoBot() {
@@ -106,7 +115,9 @@ class _SerialRobotView extends State<SerialRobotView> {
                   subtitle: Text(device.manufacturerName ?? 'Unknown manufacturer'),
                   trailing: ElevatedButton(
                     child: Text('Connect'),
-                    onPressed: () => _serialService.connectTo(device),
+                    onPressed: () => {
+                     _connectToDevice(device)
+                    }
                   ),
                 )).toList(),
               );
