@@ -54,7 +54,6 @@ class _SerialRobotView extends State<SerialRobotView> {
     }
   }
 
-  // Delayed desicion making, robot must be careful
   void sumoBot() {
     _streamSubscription?.cancel();
     _streamSubscription = _serialService.dataStream.listen((data) async {

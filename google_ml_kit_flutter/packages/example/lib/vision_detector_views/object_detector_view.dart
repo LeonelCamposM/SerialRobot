@@ -22,7 +22,8 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
   int _option = 0;
   final _options = {
     'default': '',
-    'carmelo': 'carmelo.tflite',
+    'newModel': 'mobileNet.tflite',
+    'efficientnet': 'efficientnet.tflite',
   };
 
   @override
