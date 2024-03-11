@@ -42,14 +42,6 @@ class _SerialRobotView extends State<SerialRobotView> {
     _serialService.sendSerialData(command);
   }
 
-  void _sendCommandSequence() async {
-    final List<String> commands = ['up', 'up', 'stop']; 
-    for (final String command in commands) {
-      _serialService.sendSerialData(command);
-      await Future.delayed(Duration(milliseconds: 500));
-    }
-  }
-
   Future<void> _sendCommandWithDelay(String command, Duration delay) async {
     _sendSerialData(command); 
     await Future.delayed(delay); 
@@ -64,31 +56,36 @@ class _SerialRobotView extends State<SerialRobotView> {
 
   // Delayed desicion making, robot must be careful
   void sumoBot() {
-  _streamSubscription?.cancel();
-  _streamSubscription = _serialService.dataStream.listen((data) async {
+    _streamSubscription?.cancel();
+    _streamSubscription = _serialService.dataStream.listen((data) async {
     final Map<String, dynamic> sensorData = json.decode(data);
     final int rightLineDetected = sensorData['rightLineDetected'];
     final int leftLineDetected = sensorData['leftLineDetected'];
     final int distance = sensorData['distance'];
-    if (distance < 40) {
+
+    if (rightLineDetected == 1 || leftLineDetected == 1) {
       setState(() {
-        robotState = 'Stopped due to close object.';
+        robotState = 'Stopped due to line';
       });
-      await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
-    } else if (rightLineDetected == 1 || leftLineDetected  == 1) {
-      setState(() {
-        robotState = 'Turning right due to line detected.';
-      });
-      await _sendCommandWithDelay('stop', Duration(milliseconds: 500));
-      await _sendCommandWithDelay('set_speed 255', Duration(milliseconds: 0));
-      await _sendCommandWithDelay('down', Duration(milliseconds: 500));
-      await _sendCommandWithDelay('right', Duration(milliseconds: 500));
-    } else {
+      await _sendCommandWithDelay('stop',  Duration.zero);
+      await _sendCommandWithDelay('set_speed 255',  Duration.zero);
+      await _sendCommandWithDelay('down',  Duration(milliseconds: 800));
+      await _sendCommandWithDelay('set_speed 120',  Duration.zero);
+      await _sendCommandWithDelay('right',  Duration(milliseconds: 500));
+    }else{
+      if (distance <= 80) {
         setState(() {
-        robotState = 'Moving forward.';
-      });
-      await _sendCommandWithDelay('set_speed 180', Duration(milliseconds: 0));
-      await _sendCommandWithDelay('up', Duration(milliseconds: 500));
+          robotState = 'Moving forward. at 255';
+        });
+        await _sendCommandWithDelay('set_speed 255',  Duration.zero);
+        await _sendCommandWithDelay('up',  Duration.zero);
+      } else {
+        setState(() {
+          robotState = 'Moving forward. at 180';
+        });
+        await _sendCommandWithDelay('set_speed 180',  Duration.zero);
+        await _sendCommandWithDelay('up',  Duration.zero);
+      }
     }
     _sendSerialData('sensors');
   });
@@ -155,7 +152,7 @@ class _SerialRobotView extends State<SerialRobotView> {
           ),
         ),
         ElevatedButton(
-          onPressed: ()=> {_sendSerialData('sumo')},
+          onPressed: ()=> {sumoBot()},
           child: Text('Start sumobot'),
         ),
         ElevatedButton(
