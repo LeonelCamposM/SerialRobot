@@ -135,7 +135,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         mode: _mode,
         modelPath: modelPath,
         classifyObjects: true,
-        multipleObjects: true,
+        multipleObjects: false,
       );
       _objectDetector = ObjectDetector(options: options);
     }
@@ -166,7 +166,15 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
       _text = '';
     });
     final objects = await _objectDetector!.processImage(inputImage);
-    // print('Objects found: ${objects.length}\n\n');
+    for (final object in objects) {
+      final left = object.boundingBox.left;
+      final top = object.boundingBox.top;
+      final right = object.boundingBox.right;
+      final bottom = object.boundingBox.bottom;
+      _text =
+          'Object: box: {$left  $top $right $bottom} trackingId: ${object.trackingId} - ${object.labels.map((e) => e.text)}\n\n';
+          print(_text);
+    }
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
       final painter = ObjectDetectorPainter(
@@ -177,11 +185,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
       );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      String text = 'Objects found: ${objects.length}\n\n';
-      for (final object in objects) {
-        text +=
-            'Object:  trackingId: ${object.trackingId} - ${object.labels.map((e) => e.text)}\n\n';
-      }
+      final String text = 'Objects found: ${objects.length}\n\n';
       _text = text;
       // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;

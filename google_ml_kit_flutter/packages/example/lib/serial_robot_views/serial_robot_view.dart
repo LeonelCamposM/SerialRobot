@@ -152,11 +152,11 @@ class _SerialRobotView extends State<SerialRobotView> {
         ),
         ElevatedButton(
           onPressed: ()=> {sumoBot()},
-          child: Text('Start sumobot'),
+          child: Text('Sumobot flutter'),
         ),
         ElevatedButton(
-          onPressed: ()=> {_sendSerialData('start_stream')},
-          child: Text('Start stream'),
+          onPressed: ()=> {_sendSerialData('sumo')},
+          child: Text('Sumobot esp32'),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
