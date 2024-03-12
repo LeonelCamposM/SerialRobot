@@ -1,5 +1,5 @@
 bool shouldStream = false;
-int robotSpeed = 140;
+int robotSpeed = 255;
 
 void setup() {
   Serial.begin(115200);
@@ -55,17 +55,20 @@ void lineFollower() {
 void sumoBot(){
   int distance = getDistance();
   if (isRightLineDetected() == 1 || isLeftLineDetected() == 1) {
+    Serial.println("{\"Sumostate\":\"Line Detected" "\"}");
     digitalWrite(LED_BUILTIN, HIGH);
     stopMovement();
     goBackward(255);
     delay(800);
-    goRight(120);
+    goRight(255);
     delay(500);
   } else {
     if (distance <= 80) {
+      Serial.println("{\"Sumostate\":\"Forward 255" "\"}");
       digitalWrite(LED_BUILTIN, LOW);
       goForward(255);
     } else {
+      Serial.println("{\"Sumostate\":\"Forward 180" "\"}");
       digitalWrite(LED_BUILTIN, HIGH);
       goForward(180);
     }
