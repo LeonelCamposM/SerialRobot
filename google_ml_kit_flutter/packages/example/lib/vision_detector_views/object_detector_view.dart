@@ -21,8 +21,6 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
   var _cameraLensDirection = CameraLensDirection.back;
   int _option = 0;
   final _options = {
-    'default': '',
-    'newModel': 'mobileNet.tflite',
     'efficientnet': 'efficientnet.tflite',
   };
 
@@ -165,18 +163,12 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
     setState(() {
       _text = '';
     });
+
     final objects = await _objectDetector!.processImage(inputImage);
-    for (final object in objects) {
-      final left = object.boundingBox.left;
-      final top = object.boundingBox.top;
-      final right = object.boundingBox.right;
-      final bottom = object.boundingBox.bottom;
-      _text =
-          'Object: box: {$left  $top $right $bottom} trackingId: ${object.trackingId} - ${object.labels.map((e) => e.text)}\n\n';
-          print(_text);
-    }
-    if (inputImage.metadata?.size != null &&
-        inputImage.metadata?.rotation != null) {
+
+    // Verificar si los metadatos de la imagen están disponibles antes de proceder
+    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
+      analyzeObjectsAndDecideActions(objects, inputImage.metadata!);
       final painter = ObjectDetectorPainter(
         objects,
         inputImage.metadata!.size,
@@ -184,15 +176,57 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         _cameraLensDirection,
       );
       _customPaint = CustomPaint(painter: painter);
-    } else {
-      final String text = 'Objects found: ${objects.length}\n\n';
-      _text = text;
-      // TODO: set _customPaint to draw boundingRect on top of image
-      _customPaint = null;
-    }
+    } 
+
     _isBusy = false;
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  void analyzeObjectsAndDecideActions(List<DetectedObject> objects, InputImageMetadata metadata) {
+    for (final object in objects) {
+      final left = object.boundingBox.left;
+      final top = object.boundingBox.top;
+      final right = object.boundingBox.right;
+      final bottom = object.boundingBox.bottom;
+      final trackingId = object.trackingId;
+      final labelsText = object.labels.map((e) => e.text).join(', ');
+
+      // Calcula el centro del objeto y del Área de Interés (AOI)
+      final centerX = (left + right) / 2;
+      final centerY = (top + bottom) / 2;
+      final screenWidth = metadata.size.width;
+      final screenHeight = metadata.size.height;
+      final aoiCenterX = screenWidth / 2;
+      final aoiCenterY = screenHeight / 2;
+
+      String action = '';
+      if (centerX < aoiCenterX) {
+        action += 'Move Left, ';
+      } else if (centerX > aoiCenterX) {
+        action += 'Move Right, ';
+      }
+
+      if (centerY < aoiCenterY) {
+        action += 'Move Up, ';
+      } else if (centerY > aoiCenterY) {
+        action += 'Move Down, ';
+      }
+
+      // Determina si el objeto está cerca o lejos basándose en el tamaño del bounding box
+      final objectArea = (right - left) * (bottom - top);
+      final screenArea = screenWidth * screenHeight;
+      final areaRatio = objectArea / screenArea;
+
+      if (areaRatio > 0.1) { // Si el objeto ocupa más del 10% del área de la pantalla, se considera "cerca"
+        action += 'Object is Close';
+      } else {
+        action += 'Object is Far';
+      }
+
+      // Imprimir las acciones recomendadas
+      print('Object Tracking ID: $trackingId - Labels: $labelsText - Recommended Action: $action');
     }
   }
 }
