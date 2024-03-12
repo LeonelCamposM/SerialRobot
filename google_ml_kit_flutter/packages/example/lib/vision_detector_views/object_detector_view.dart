@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart';
 
 import 'detector_view.dart';
+import 'painters/aoi_painter.dart';
 import 'painters/object_detector_painter.dart';
 import 'utils.dart';
 
@@ -21,6 +22,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
   var _cameraLensDirection = CameraLensDirection.back;
   int _option = 0;
   final _options = {
+    'default': '',
     'efficientnet': 'efficientnet.tflite',
   };
 
@@ -168,6 +170,17 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
 
     // Verificar si los metadatos de la imagen están disponibles antes de proceder
     if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
+      final Rect aoiRect = Rect.fromCenter(
+        center: Offset(inputImage.metadata!.size.width / 2, inputImage.metadata!.size.height / 2),
+        width: inputImage.metadata!.size.width * 0.5,
+        height: inputImage.metadata!.size.height * 0.5,
+      );
+      final aoiPainter = AOIPainter(
+        imageSize: inputImage.metadata!.size,
+        rotation: inputImage.metadata!.rotation,
+        cameraLensDirection: _cameraLensDirection,
+        aoiRect: aoiRect,
+      );
       analyzeObjectsAndDecideActions(objects, inputImage.metadata!);
       final painter = ObjectDetectorPainter(
         objects,
@@ -175,7 +188,10 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         inputImage.metadata!.rotation,
         _cameraLensDirection,
       );
-      _customPaint = CustomPaint(painter: painter);
+      _customPaint = CustomPaint(
+        painter: aoiPainter, // Este se dibuja primero, por debajo
+        foregroundPainter: painter, // Este se dibuja encima, mostrando los objetos
+      );
     } 
 
     _isBusy = false;
