@@ -56,10 +56,22 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       );
 
       // Determine if any object is focused and set the AOI color
-      anyObjectFocused = analyzeObjectsAndDecideActions(barcodes, inputImage.metadata!, aoiRect);
+      final String objectFocus = analyzeObjectsAndDecideActions(barcodes, inputImage.metadata!, aoiRect);
 
       // Set the color of the AOI based on whether any object is focused
-      Color aoiColor = anyObjectFocused ? Colors.green : Colors.red;
+      print('focus State: $objectFocus');
+      Color aoiColor = Color.fromARGB(255, 241, 30, 2);
+      if(objectFocus == 'Q1'){
+        aoiColor = Colors.green;
+      } else if(objectFocus  == 'Q2'){
+        aoiColor = Color.fromARGB(255, 233, 5, 138);
+      } else if(objectFocus  == 'Q3'){
+        aoiColor = Color.fromARGB(255, 7, 93, 252);
+      } else if(objectFocus  == 'Q4'){
+        aoiColor = Color.fromARGB(255, 237, 241, 2);
+      } else if(objectFocus  == 'Q5'){
+        aoiColor = Color.fromARGB(255, 36, 241, 224);
+      }
 
       // Prepare the custom paint for the AOI and detected barcodes
       _customPaint = CustomPaint(
@@ -75,6 +87,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
           inputImage.metadata!.size,
           inputImage.metadata!.rotation,
           _cameraLensDirection,
+          objectFocus
         ),
       );
     }
@@ -86,20 +99,21 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     }
   }
 
-  bool analyzeObjectsAndDecideActions(List<Barcode> objects, InputImageMetadata metadata, Rect aoiRect) {
-    bool isAnyObjectFocused = false;
+  String analyzeObjectsAndDecideActions(List<Barcode> objects, InputImageMetadata metadata, Rect aoiRect) {
+    // Valores por defecto
+    final double meanX = 368.24680073; // Media para X
+    final double stdX = 137.2774162;   // Desviación estándar para X
+    final double meanY = 605.23034735; // Media para Y
+    final double stdY = 222.14176212;  // Desviación estándar para Y
 
-    // Assuming these values were calculated from your dataset analysis in Python
-    final double meanX = 368.24680073; // Combined mean for X
-    final double stdX = 137.2774162;   // Combined std for X
-    final double meanY = 605.23034735; // Combined mean for Y
-    final double stdY = 222.14176212;  // Combined std for Y
-
-    // Defining the range for focused based on standard deviation
+    // Rango definido para el enfoque basado en la desviación estándar
     final double minX = meanX - stdX;
     final double maxX = meanX + stdX;
     final double minY = meanY - stdY;
     final double maxY = meanY + stdY;
+
+    // Iniciar con el estado "Desenfocado" como predeterminado
+    String focusState = 'Desenfocado';
 
     for (final object in objects) {
       final left = object.boundingBox.left;
@@ -107,21 +121,30 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       final right = object.boundingBox.right;
       final bottom = object.boundingBox.bottom;
 
-      // Calculate the center of the bounding box
+      // Calcular el centro del bounding box
       final centerX = (left + right) / 2;
       final centerY = (top + bottom) / 2;
 
-      // Check if the center of the bounding box is within the standardized focused range
+      // Verificar si el centro del bounding box está dentro del rango enfocado
       final bool isFocused = centerX >= minX && centerX <= maxX && centerY >= minY && centerY <= maxY;
-       if (isFocused) {
-        isAnyObjectFocused = true;
-        // Break out of the loop as we only need to know if at least one object is focused
+      if (isFocused) {
+        focusState = 'Q1';
         break;
+      } else {
+        // Determinar el cuadrante para los objetos desenfocados
+        if (centerX < minX) {
+          focusState = 'Q2';
+        } else if (centerX > maxX) {
+          focusState = 'Q3';
+        } else if (centerY < minY) {
+          focusState = 'Q4';
+        } else if (centerY > maxY) {
+          focusState = 'Q5';
+        }
       }
-      focusState  = isFocused ? 'Focused' : 'Unfocused';
-      print('Object Bounding Box: left=$left, top=$top, right=$right, bottom=$bottom');
-      print('Object Tracking value: ${object.rawValue} - Focus State: $focusState');
     }
-    return isAnyObjectFocused;
+
+    // Devolver el estado del enfoque y ubicación
+    return focusState;
   }
 }

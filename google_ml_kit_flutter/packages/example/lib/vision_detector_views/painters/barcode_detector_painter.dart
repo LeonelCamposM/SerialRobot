@@ -14,12 +14,14 @@ class BarcodeDetectorPainter extends CustomPainter {
     this.imageSize,
     this.rotation,
     this.cameraLensDirection,
+    this.objectFocus
   );
 
   final List<Barcode> barcodes;
   final Size imageSize;
   final InputImageRotation rotation;
   final CameraLensDirection cameraLensDirection;
+  final String objectFocus;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -39,7 +41,7 @@ class BarcodeDetectorPainter extends CustomPainter {
       );
       builder.pushStyle(
           ui.TextStyle(color: Colors.lightGreenAccent, background: background));
-      builder.addText('${barcode.displayValue}');
+      builder.addText('Vx: ${barcode.displayValue} Qx: $objectFocus');
       builder.pop();
 
       final left = translateX(
