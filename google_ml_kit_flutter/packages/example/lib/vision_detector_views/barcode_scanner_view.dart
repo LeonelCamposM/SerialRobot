@@ -79,6 +79,18 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   }
 
   void analyzeObjectsAndDecideActions(List<Barcode> objects, InputImageMetadata metadata, Rect aoiRect) {
+    // Assuming these values were calculated from your dataset analysis in Python
+    final double meanX = 368.24680073; // Combined mean for X
+    final double stdX = 137.2774162;   // Combined std for X
+    final double meanY = 605.23034735; // Combined mean for Y
+    final double stdY = 222.14176212;  // Combined std for Y
+
+    // Defining the range for focused based on standard deviation
+    final double minX = meanX - stdX;
+    final double maxX = meanX + stdX;
+    final double minY = meanY - stdY;
+    final double maxY = meanY + stdY;
+
     for (final object in objects) {
       final left = object.boundingBox.left;
       final top = object.boundingBox.top;
@@ -89,22 +101,11 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       final centerX = (left + right) / 2;
       final centerY = (top + bottom) / 2;
 
-      // Define the focused range for x and y coordinates
-      final xFocusedMin = 250.0;
-      final xFocusedMax = 540.0;
-      final yFocusedMin = 400.0;
-      final yFocusedMax = 800.0;
+      // Check if the center of the bounding box is within the standardized focused range
+      final bool isFocused = centerX >= minX && centerX <= maxX && centerY >= minY && centerY <= maxY;
 
-      // Check if the center of the bounding box is within the focused range
-      final bool isFocused = centerX >= xFocusedMin && centerX <= xFocusedMax &&
-                            centerY >= yFocusedMin && centerY <= yFocusedMax;
-
-      // Set focus state based on the determined condition
       final String focusState = isFocused ? 'Focused' : 'Unfocused';
-
-      // Print out the bounding box and focus state for debugging
       print('Object Bounding Box: left=$left, top=$top, right=$right, bottom=$bottom');
-      print('Bounding Box Center: x=$centerX, y=$centerY');
       print('Object Tracking value: ${object.rawValue} - Focus State: $focusState');
     }
   }
