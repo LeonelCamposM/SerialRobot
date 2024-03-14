@@ -18,6 +18,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   CustomPaint? _customPaint;
   String? _text;
   var _cameraLensDirection = CameraLensDirection.back;
+  String focusState = 'Unfocused';
+  bool anyObjectFocused = false;
 
   @override
   void dispose() {
@@ -46,39 +48,47 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       _text = '';
     });
     final barcodes = await _barcodeScanner.processImage(inputImage);
-    if (inputImage.metadata?.size != null &&
-        inputImage.metadata?.rotation != null) {
+    if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
       final Rect aoiRect = Rect.fromCenter(
         center: Offset(inputImage.metadata!.size.width / 2, inputImage.metadata!.size.height / 2),
         width: inputImage.metadata!.size.width * 0.4,
         height: inputImage.metadata!.size.height * 0.4,
       );
-      final aoiPainter = AOIPainter(
-        imageSize: inputImage.metadata!.size,
-        rotation: inputImage.metadata!.rotation,
-        cameraLensDirection: _cameraLensDirection,
-        aoiRect: aoiRect,
-      );
-      analyzeObjectsAndDecideActions(barcodes, inputImage.metadata!, aoiRect);
-      final painter = BarcodeDetectorPainter(
-        barcodes,
-        inputImage.metadata!.size,
-        inputImage.metadata!.rotation,
-        _cameraLensDirection,
-      );
-        _customPaint = CustomPaint(
-        painter: aoiPainter, // Este se dibuja primero, por debajo
-        foregroundPainter: painter, // Este se dibuja encima, mostrando los objetos
-      );
-    } 
 
+      // Determine if any object is focused and set the AOI color
+      anyObjectFocused = analyzeObjectsAndDecideActions(barcodes, inputImage.metadata!, aoiRect);
+
+      // Set the color of the AOI based on whether any object is focused
+      Color aoiColor = anyObjectFocused ? Colors.green : Colors.red;
+
+      // Prepare the custom paint for the AOI and detected barcodes
+      _customPaint = CustomPaint(
+        painter: AOIPainter(
+          imageSize: inputImage.metadata!.size,
+          rotation: inputImage.metadata!.rotation,
+          cameraLensDirection: _cameraLensDirection,
+          aoiRect: aoiRect,
+          color: aoiColor, // Use the updated AOI color
+        ),
+        foregroundPainter: BarcodeDetectorPainter(
+          barcodes,
+          inputImage.metadata!.size,
+          inputImage.metadata!.rotation,
+          _cameraLensDirection,
+        ),
+      );
+    }
+
+    // Release the busy lock and redraw the widget
     _isBusy = false;
     if (mounted) {
       setState(() {});
     }
   }
 
-  void analyzeObjectsAndDecideActions(List<Barcode> objects, InputImageMetadata metadata, Rect aoiRect) {
+  bool analyzeObjectsAndDecideActions(List<Barcode> objects, InputImageMetadata metadata, Rect aoiRect) {
+    bool isAnyObjectFocused = false;
+
     // Assuming these values were calculated from your dataset analysis in Python
     final double meanX = 368.24680073; // Combined mean for X
     final double stdX = 137.2774162;   // Combined std for X
@@ -103,10 +113,15 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
 
       // Check if the center of the bounding box is within the standardized focused range
       final bool isFocused = centerX >= minX && centerX <= maxX && centerY >= minY && centerY <= maxY;
-
-      final String focusState = isFocused ? 'Focused' : 'Unfocused';
+       if (isFocused) {
+        isAnyObjectFocused = true;
+        // Break out of the loop as we only need to know if at least one object is focused
+        break;
+      }
+      focusState  = isFocused ? 'Focused' : 'Unfocused';
       print('Object Bounding Box: left=$left, top=$top, right=$right, bottom=$bottom');
       print('Object Tracking value: ${object.rawValue} - Focus State: $focusState');
     }
+    return isAnyObjectFocused;
   }
 }

@@ -5,14 +5,16 @@ import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart
 class AOIPainter extends CustomPainter {
   final Size imageSize;
   final InputImageRotation  rotation;
-  var  cameraLensDirection = CameraLensDirection.back;
-  final Rect aoiRect; // Rectángulo del Área de Interés
+  final CameraLensDirection cameraLensDirection;
+  final Rect aoiRect; 
+  final Color color; 
 
   AOIPainter({
     required this.imageSize,
     required this.rotation,
     required this.cameraLensDirection,
     required this.aoiRect,
+    required this.color
   });
 
   @override
@@ -23,7 +25,7 @@ class AOIPainter extends CustomPainter {
 
     // Crear un Paint para el AOI
     final paint = Paint()
-      ..color = Colors.red.withOpacity(0.5)
+      ..color = color 
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
 

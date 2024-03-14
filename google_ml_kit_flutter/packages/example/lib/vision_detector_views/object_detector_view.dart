@@ -180,6 +180,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         rotation: inputImage.metadata!.rotation,
         cameraLensDirection: _cameraLensDirection,
         aoiRect: aoiRect,
+        color: Colors.green
       );
       analyzeObjectsAndDecideActions(objects, inputImage.metadata!);
       final painter = ObjectDetectorPainter(
