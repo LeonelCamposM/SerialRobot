@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 
 import 'detector_view.dart';
+import 'painters/aoi_painter.dart';
 import 'painters/barcode_detector_painter.dart';
 
 class BarcodeScannerView extends StatefulWidget {
@@ -47,25 +48,64 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     final barcodes = await _barcodeScanner.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
         inputImage.metadata?.rotation != null) {
+      final Rect aoiRect = Rect.fromCenter(
+        center: Offset(inputImage.metadata!.size.width / 2, inputImage.metadata!.size.height / 2),
+        width: inputImage.metadata!.size.width * 0.4,
+        height: inputImage.metadata!.size.height * 0.4,
+      );
+      final aoiPainter = AOIPainter(
+        imageSize: inputImage.metadata!.size,
+        rotation: inputImage.metadata!.rotation,
+        cameraLensDirection: _cameraLensDirection,
+        aoiRect: aoiRect,
+      );
+      analyzeObjectsAndDecideActions(barcodes, inputImage.metadata!, aoiRect);
       final painter = BarcodeDetectorPainter(
         barcodes,
         inputImage.metadata!.size,
         inputImage.metadata!.rotation,
         _cameraLensDirection,
       );
-      _customPaint = CustomPaint(painter: painter);
-    } else {
-      String text = 'Barcodes found: ${barcodes.length}\n\n';
-      for (final barcode in barcodes) {
-        text += 'Barcode: ${barcode.rawValue}\n\n';
-      }
-      _text = text;
-      // TODO: set _customPaint to draw boundingRect on top of image
-      _customPaint = null;
-    }
+        _customPaint = CustomPaint(
+        painter: aoiPainter, // Este se dibuja primero, por debajo
+        foregroundPainter: painter, // Este se dibuja encima, mostrando los objetos
+      );
+    } 
+
     _isBusy = false;
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  void analyzeObjectsAndDecideActions(List<Barcode> objects, InputImageMetadata metadata, Rect aoiRect) {
+    for (final object in objects) {
+      final left = object.boundingBox.left;
+      final top = object.boundingBox.top;
+      final right = object.boundingBox.right;
+      final bottom = object.boundingBox.bottom;
+
+      // Calculate the center of the bounding box
+      final centerX = (left + right) / 2;
+      final centerY = (top + bottom) / 2;
+
+      // Define the focused range for x and y coordinates
+      final xFocusedMin = 250.0;
+      final xFocusedMax = 540.0;
+      final yFocusedMin = 400.0;
+      final yFocusedMax = 800.0;
+
+      // Check if the center of the bounding box is within the focused range
+      final bool isFocused = centerX >= xFocusedMin && centerX <= xFocusedMax &&
+                            centerY >= yFocusedMin && centerY <= yFocusedMax;
+
+      // Set focus state based on the determined condition
+      final String focusState = isFocused ? 'Focused' : 'Unfocused';
+
+      // Print out the bounding box and focus state for debugging
+      print('Object Bounding Box: left=$left, top=$top, right=$right, bottom=$bottom');
+      print('Bounding Box Center: x=$centerX, y=$centerY');
+      print('Object Tracking value: ${object.rawValue} - Focus State: $focusState');
     }
   }
 }
