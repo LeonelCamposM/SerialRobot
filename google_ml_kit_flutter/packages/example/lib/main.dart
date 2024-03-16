@@ -15,6 +15,8 @@ import 'vision_detector_views/pose_detector_view.dart';
 import 'vision_detector_views/selfie_segmenter_view.dart';
 import 'vision_detector_views/text_detector_view.dart';
 
+final StreamController<String> focusStateController = StreamController<String>.broadcast();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -34,7 +36,7 @@ class MyApp extends StatelessWidget {
       ),
       body: Column(
         children: [
-          SerialRobotView(),
+          SerialRobotView(focusStateController: focusStateController),
           MLKitView()
         ],
       ),
@@ -55,7 +57,7 @@ class MLKitView extends StatelessWidget {
                     ExpansionTile(
                       title: const Text('Vision APIs'),
                       children: [
-                        CustomCard('Barcode Scanning', BarcodeScannerView()),
+                        CustomCard('Barcode Scanning', BarcodeScannerView(focusStateController: focusStateController)),
                         CustomCard('Face Detection', FaceDetectorView()),
                         CustomCard('Face Mesh Detection', FaceMeshDetectorView()),
                         CustomCard('Image Labeling', ImageLabelView()),

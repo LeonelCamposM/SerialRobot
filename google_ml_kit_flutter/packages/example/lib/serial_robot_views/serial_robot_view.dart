@@ -7,7 +7,8 @@ import 'gamepad_service.dart';
 import 'serial_service.dart';
 
 class SerialRobotView extends StatefulWidget {
-  const SerialRobotView({super.key});
+  final StreamController<String> focusStateController;
+  SerialRobotView({Key? key, required this.focusStateController}) : super(key: key);
 
   @override
   State<SerialRobotView> createState() => _SerialRobotView();
@@ -27,6 +28,14 @@ class _SerialRobotView extends State<SerialRobotView> {
       _serialService.getPorts();
     });
     _serialService.getPorts();
+    widget.focusStateController.stream.listen((data) async {
+      // Reaccionar al estado recibido, por ejemplo:
+      if (data == 'Q1') {
+        print('focused, dont move $data');
+      }else{
+        print('unfocused, moving $data');
+      }
+    });
   }
 
   @override
@@ -37,6 +46,7 @@ class _SerialRobotView extends State<SerialRobotView> {
     _gamepadService?.dispose();
     super.dispose();
   }
+
 
   void _sendSerialData(String command) {
     _serialService.sendSerialData(command);

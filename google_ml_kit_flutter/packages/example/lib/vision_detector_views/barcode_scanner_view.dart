@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
@@ -7,6 +9,9 @@ import 'painters/aoi_painter.dart';
 import 'painters/barcode_detector_painter.dart';
 
 class BarcodeScannerView extends StatefulWidget {
+  final StreamController<String> focusStateController;
+  BarcodeScannerView({Key? key, required this.focusStateController}) : super(key: key);
+
   @override
   State<BarcodeScannerView> createState() => _BarcodeScannerViewState();
 }
@@ -61,7 +66,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       // Set the color of the AOI based on whether any object is focused
       print('focus State: $objectFocus');
       Color aoiColor = Color.fromARGB(255, 241, 30, 2);
-      if(objectFocus == 'Q1'){
+      if(objectFocus == 'Q1') {
         aoiColor = Colors.green;
       } else if(objectFocus  == 'Q2'){
         aoiColor = Color.fromARGB(255, 233, 5, 138);
@@ -72,6 +77,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       } else if(objectFocus  == 'Q5'){
         aoiColor = Color.fromARGB(255, 36, 241, 224);
       }
+      widget.focusStateController.sink.add(objectFocus);
 
       // Prepare the custom paint for the AOI and detected barcodes
       _customPaint = CustomPaint(
