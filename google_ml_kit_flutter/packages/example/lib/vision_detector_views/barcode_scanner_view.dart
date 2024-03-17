@@ -119,7 +119,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     final double maxY = meanY + stdY;
 
     // Iniciar con el estado "Desenfocado" como predeterminado
-    String focusState = 'Desenfocado';
+    String focusState = 'Q0';
 
     for (final object in objects) {
       final left = object.boundingBox.left;

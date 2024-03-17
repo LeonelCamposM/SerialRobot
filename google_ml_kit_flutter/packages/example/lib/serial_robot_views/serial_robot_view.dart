@@ -28,12 +28,24 @@ class _SerialRobotView extends State<SerialRobotView> {
       _serialService.getPorts();
     });
     _serialService.getPorts();
+    _sendCommandWithDelay('set_speed 180',  Duration.zero);
     widget.focusStateController.stream.listen((data) async {
       // Reaccionar al estado recibido, por ejemplo:
-      if (data == 'Q1') {
+      if (data == 'Q1' || data == 'Q0') {
         print('focused, dont move $data');
-      }else{
-        print('unfocused, moving $data');
+        await _sendCommandWithDelay('stop',  Duration.zero);
+      } else if (data == 'Q4') {
+        print('unfocused, moving left$data');
+        await _sendCommandWithDelay('left',  Duration.zero);
+      } else if (data == 'Q5') {
+        print('unfocused, moving right$data');
+        await _sendCommandWithDelay('right',  Duration.zero);
+      } else if (data == 'Q2') {
+        print('unfocused, moving up$data');
+        await _sendCommandWithDelay('up',  Duration.zero);
+      } else if (data == 'Q3') {
+        print('unfocused, moving up $data');
+        await _sendCommandWithDelay('up',  Duration.zero);
       }
     });
   }
