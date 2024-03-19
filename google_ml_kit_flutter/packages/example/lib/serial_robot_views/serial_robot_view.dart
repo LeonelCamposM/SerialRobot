@@ -30,7 +30,6 @@ class _SerialRobotView extends State<SerialRobotView> {
     _serialService.getPorts();
     _sendCommandWithDelay('set_speed 180',  Duration.zero);
     widget.focusStateController.stream.listen((data) async {
-      // Reaccionar al estado recibido, por ejemplo:
       if (data == 'Q1' || data == 'Q0') {
         print('focused, dont move $data');
         await _sendCommandWithDelay('stop',  Duration.zero);
@@ -91,7 +90,7 @@ class _SerialRobotView extends State<SerialRobotView> {
       await _sendCommandWithDelay('stop',  Duration.zero);
       await _sendCommandWithDelay('set_speed 255',  Duration.zero);
       await _sendCommandWithDelay('down',  Duration(milliseconds: 800));
-      await _sendCommandWithDelay('set_speed 120',  Duration.zero);
+      await _sendCommandWithDelay('set_speed 180',  Duration.zero);
       await _sendCommandWithDelay('right',  Duration(milliseconds: 500));
     }else{
       if (distance <= 80) {
@@ -140,20 +139,29 @@ class _SerialRobotView extends State<SerialRobotView> {
                 )).toList(),
               );
             } else {
-              return Text('No serial devices available');
+              return PaddedRowText(
+              text: 'No serial devices available',
+            ); 
             }
           },
         ),
         StreamBuilder<String>(
           stream: _serialService.statusStream,
           builder: (context, snapshot) {
-            return Text('Status: ${snapshot.data ?? 'Idle'}\n');
+            return PaddedRowText(
+              text: 'Status: ${snapshot.data ?? 'Idle'}\n',
+            );
           },
+        ),
+        PaddedRowText(
+          text: 'Robot state: $robotState',
         ),
         StreamBuilder<String>(
           stream: _serialService.dataStream,
           builder: (context, snapshot) {
-            return Text('Data: ${snapshot.data ?? 'N/A'}\n');
+            return PaddedRowText(
+              text: 'Data: ${snapshot.data ?? 'N/A'}\n',
+            );
           },
         ),
         Padding(
@@ -173,18 +181,48 @@ class _SerialRobotView extends State<SerialRobotView> {
           ),
         ),
         ElevatedButton(
-          onPressed: ()=> {sumoBot()},
-          child: Text('Sumobot flutter'),
-        ),
-        ElevatedButton(
           onPressed: ()=> {_sendSerialData('sumo')},
           child: Text('Sumobot esp32'),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text('Robot state: $robotState'),
         ),
       ],
     );
   }
 }
+
+class PaddedRowText extends StatelessWidget {
+  final String text;
+  final IconData? icon;
+  final VoidCallback? onPressed;
+  final double horizontalPadding;
+
+  const PaddedRowText({
+    Key? key,
+    required this.text,
+    this.icon,
+    this.onPressed,
+    this.horizontalPadding = 16.0,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: horizontalPadding),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (icon != null) ...[
+            Icon(icon),
+            SizedBox(width: 8.0), 
+          ],
+          Expanded(child: Text(text)),
+          if (onPressed != null)
+            ElevatedButton(
+              onPressed: onPressed,
+              child: Text('Connect'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
