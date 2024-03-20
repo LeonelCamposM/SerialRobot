@@ -28,7 +28,6 @@ class _SerialRobotView extends State<SerialRobotView> {
       _serialService.getPorts();
     });
     _serialService.getPorts();
-    _sendCommandWithDelay('set_speed 180',  Duration.zero);
     widget.focusStateController.stream.listen((data) async {
       if (data == 'Q1' || data == 'Q0') {
         print('focused, dont move $data');
@@ -184,6 +183,7 @@ class _SerialRobotView extends State<SerialRobotView> {
           onPressed: ()=> {_sendSerialData('sumo')},
           child: Text('Sumobot esp32'),
         ),
+        SpeedSlider(onChange: (speed)=> {_sendSerialData('set_speed $speed')})
       ],
     );
   }
@@ -191,15 +191,11 @@ class _SerialRobotView extends State<SerialRobotView> {
 
 class PaddedRowText extends StatelessWidget {
   final String text;
-  final IconData? icon;
-  final VoidCallback? onPressed;
   final double horizontalPadding;
 
   const PaddedRowText({
     Key? key,
     required this.text,
-    this.icon,
-    this.onPressed,
     this.horizontalPadding = 16.0,
   }) : super(key: key);
 
@@ -210,19 +206,48 @@ class PaddedRowText extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (icon != null) ...[
-            Icon(icon),
-            SizedBox(width: 8.0), 
-          ],
-          Expanded(child: Text(text)),
-          if (onPressed != null)
-            ElevatedButton(
-              onPressed: onPressed,
-              child: Text('Connect'),
-            ),
+          Expanded(child: Text(text))
         ],
       ),
     );
   }
 }
 
+class SpeedSlider extends StatefulWidget {
+  final Function(int) onChange;
+  
+  SpeedSlider({required this.onChange});
+
+  @override
+  SpeedSliderState createState() => SpeedSliderState();
+}
+
+class SpeedSliderState extends State<SpeedSlider> {
+  double _currentSliderValue = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Slider(
+          value: _currentSliderValue,
+          min: 0,
+          max: 255,
+          divisions: 255,
+          label: _currentSliderValue.round().toString(),
+          onChanged: (double value) {
+            setState(() {
+              _currentSliderValue = value;
+              widget.onChange(value.toInt());
+            });
+          },
+        ),
+        Text(
+          'Valor del Slider: ${_currentSliderValue.round()}',
+          style: TextStyle(fontSize: 20),
+        ),
+      ],
+    );
+  }
+}
