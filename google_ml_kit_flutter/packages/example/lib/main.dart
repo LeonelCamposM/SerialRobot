@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'serial_robot_views/serial_robot_view.dart';
 import 'vision_detector_views/barcode_scanner_view.dart';
+import 'vision_detector_views/command_calibration_view.dart';
 
 final StreamController<String> focusStateController = StreamController<String>.broadcast();
 
@@ -25,7 +26,8 @@ class MyApp extends StatelessWidget {
       body: Column(
         children: [
           SerialRobotView(focusStateController: focusStateController),
-          CustomCard('Barcode Scanning', BarcodeScannerView(focusStateController: focusStateController))
+          CustomCard('Barcode Following', BarcodeScannerView(focusStateController: focusStateController)),
+          CustomCard('Command Calibration', CommandCalibrationView())
         ],
       ),
     ));
