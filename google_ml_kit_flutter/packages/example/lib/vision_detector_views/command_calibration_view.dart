@@ -1,12 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'detector_view.dart';
 import 'painters/aoi_painter.dart';
 import 'painters/barcode_detector_painter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 class CommandCalibrationView extends StatefulWidget {
   CommandCalibrationView({Key? key}) : super(key: key);
@@ -32,7 +34,7 @@ class _CommandCalibrationViewState extends State<CommandCalibrationView> {
     'Q5': [],
   };
   
-  String currentTag = 'Calibrate';
+  String currentTag = 'Calibrate Load';
   bool calibrationView = false;
   final Map<int, String> _options = {
     0: 'Calibrate Load',
@@ -100,25 +102,22 @@ class _CommandCalibrationViewState extends State<CommandCalibrationView> {
       height: 2,
       color: Colors.blue,
     ),
-    onChanged: (int? option) async {
-      if (option != null) {
-        setState(() async {
-          _option = option;
-          currentTag = _options[option]!;
-          if(currentTag == 'Calibrate Save'){
-            print('current storing points: ');
-            await saveCalibrationData();
-          } else if(currentTag == 'Calibrate Load') {  
-            print('current loaded points Q1: ');
-            await loadCalibrationData();
-            print('current points Q1: ');
-            print(taggedPoints['Q1']);
-            print('current points Q2: ');
-            print(taggedPoints['Q2']);    
-          }
-        });
+    onChanged: (int? option) async { 
+    if (option != null) {
+      _option = option;
+      currentTag = _options[option]!;
+
+      if (currentTag == 'Calibrate Save') {
+        await saveCalibrationData();
+        print('stored succesfully ');
+      } else if (currentTag == 'Calibrate Load') {
+        await loadCalibrationData();
+        print('taggedPoints loaded: ');
+        print(taggedPoints);
       }
-    },
+      setState(() {});
+    }
+  },
     items: _options.entries.map<DropdownMenuItem<int>>((entry) {
       return DropdownMenuItem<int>(
         value: entry.key,
@@ -130,21 +129,23 @@ class _CommandCalibrationViewState extends State<CommandCalibrationView> {
   Future<void> saveCalibrationData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     // Serializar taggedPoints a una cadena JSON
-    String serializedData = jsonEncode(taggedPoints.map((key, value) => MapEntry(key, value.map((e) => {'dx': e.dx, 'dy': e.dy}).toList())));
+    final String serializedData = jsonEncode(taggedPoints.map((key, value) => MapEntry(key, value.map((e) => {'dx': e.dx, 'dy': e.dy}).toList())));
     await prefs.setString('calibrationData', serializedData);
   }
 
   Future<void> loadCalibrationData() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? serializedData = prefs.getString('calibrationData');
-    if (serializedData != null) {
-      Map<String, dynamic> jsonData = jsonDecode(serializedData);
-      taggedPoints = jsonData.map((key, value) {
-        List<Offset> points = (value as List<dynamic>).map((e) => Offset(e['dx'], e['dy'])).toList();
-        return MapEntry(key, points);
-      });
-    }
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  final String? serializedData = prefs.getString('calibrationData');
+  if (serializedData != null) {
+    final Map<String, dynamic> jsonData = jsonDecode(serializedData);
+    taggedPoints = jsonData.map((key, dynamic value) {
+      final pointsList = value as List<dynamic>;
+      final List<Offset> points = pointsList.map((item) => Offset(item['dx'].toDouble(), item['dy'].toDouble())).toList();
+      return MapEntry(key, points);
+    });
+    setState(() {}); // Actualiza la UI si es necesario después de cargar los datos
   }
+}
 
 
   Future<void> _calibrateImage(InputImage inputImage) async {
@@ -162,7 +163,7 @@ class _CommandCalibrationViewState extends State<CommandCalibrationView> {
         height: inputImage.metadata!.size.height * 0.4,
       );
 
-      if(currentTag != 'Calibrate') {
+      if(currentTag != 'Calibrate Save' && currentTag != 'Calibrate Load') {
         for (final barcode in barcodes) {
           final centerX = (barcode.boundingBox.left + barcode.boundingBox.right) / 2;
           final centerY = (barcode.boundingBox.top + barcode.boundingBox.bottom) / 2;
