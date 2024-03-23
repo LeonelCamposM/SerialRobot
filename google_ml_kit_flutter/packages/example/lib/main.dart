@@ -9,7 +9,6 @@ final StreamController<String> focusStateController = StreamController<String>.b
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Establece la orientación preferida del dispositivo a paisaje.
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeRight,
     DeviceOrientation.landscapeLeft,
@@ -29,22 +28,14 @@ class MyApp extends StatelessWidget {
         centerTitle: true,
         elevation: 0,
       ),
-      body:ListView.builder(
-        itemCount: 2,
-        itemBuilder: (context, index) {
-          switch (index) {
-            case 0:
-              return SerialRobotView(focusStateController: focusStateController);
-            case 1:
-              return CustomButton(
-                label: 'Barcode Following',
-                viewPage: BarcodeScannerView(focusStateController: focusStateController),
-              );
-            default:
-              return Container(); 
-          }
-        },
-      ),
+      body: 
+        SerialRobotView(
+          focusStateController: focusStateController,
+          additionalButton: CustomButton(
+            label: 'Barcode Following',
+            viewPage: BarcodeScannerView(focusStateController: focusStateController),
+          ),
+        )
     ));
   }
 }

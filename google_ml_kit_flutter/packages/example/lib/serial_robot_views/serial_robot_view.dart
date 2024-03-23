@@ -8,7 +8,13 @@ import 'serial_service.dart';
 
 class SerialRobotView extends StatefulWidget {
   final StreamController<String> focusStateController;
-  SerialRobotView({Key? key, required this.focusStateController}) : super(key: key);
+  final Widget? additionalButton; 
+
+  SerialRobotView({
+    Key? key,
+    required this.focusStateController,
+    this.additionalButton,
+  }) : super(key: key);
 
   @override
   State<SerialRobotView> createState() => _SerialRobotView();
@@ -19,6 +25,7 @@ class _SerialRobotView extends State<SerialRobotView> {
   final TextEditingController _textController = TextEditingController();
   StreamSubscription<String>? _streamSubscription;
   GamepadService? _gamepadService;
+  bool _showTerminal = true; 
 
   String robotState = 'none';
   @override
@@ -118,73 +125,105 @@ class _SerialRobotView extends State<SerialRobotView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        StreamBuilder<List<UsbDevice>>(
-          stream: _serialService.portsStream,
-          builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-              return Column(
-                children: snapshot.data!.map((device) => ListTile(
-                  leading: Icon(Icons.usb),
-                  title: Text(device.productName ?? 'Unknown device'),
-                  subtitle: Text(device.manufacturerName ?? 'Unknown manufacturer'),
-                  trailing: ElevatedButton(
-                    child: Text('Connect'),
-                    onPressed: () => {
-                     _connectToDevice(device)
-                    }
-                  ),
-                )).toList(),
-              );
-            } else {
-              return PaddedRowText(
-              text: 'No serial devices available',
-            ); 
-            }
-          },
-        ),
-        StreamBuilder<String>(
-          stream: _serialService.statusStream,
-          builder: (context, snapshot) {
-            return PaddedRowText(
-              text: 'Status: ${snapshot.data ?? 'Idle'}\n',
-            );
-          },
-        ),
-        PaddedRowText(
-          text: 'Robot state: $robotState',
-        ),
-        StreamBuilder<String>(
-          stream: _serialService.dataStream,
-          builder: (context, snapshot) {
-            return PaddedRowText(
-              text: 'Data: ${snapshot.data ?? 'N/A'}\n',
-            );
-          },
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _textController,
-            decoration: InputDecoration(
-              labelText: 'Enter command',
-              suffixIcon: IconButton(
-                icon: Icon(Icons.send),
-                onPressed: () {
-                  _sendSerialData(_textController.text);
-                  _textController.clear(); 
-                },
-              ),
+    return ListView(
+      children: [
+        Column(
+        children: <Widget>[
+          ListTile(
+            title: Text('Mostrar Terminal y Consola'),
+            trailing: Switch(
+              value: _showTerminal,
+              onChanged: (bool value) {
+                setState(() {
+                  _showTerminal = value;
+                });
+              },
             ),
           ),
-        ),
-        ElevatedButton(
-          onPressed: ()=> {_sendSerialData('sumo')},
-          child: Text('Sumobot esp32'),
-        ),
-        SpeedSlider(onChange: (speed)=> {_sendSerialData('set_speed $speed')})
-      ],
+          _showTerminal ?
+          // Robot Terminal
+          Column(
+            children: [
+              StreamBuilder<List<UsbDevice>>(
+                stream: _serialService.portsStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                    return Column(
+                      children: snapshot.data!.map((device) => ListTile(
+                        leading: Icon(Icons.usb),
+                        title: Text(device.productName ?? 'Unknown device'),
+                        subtitle: Text(device.manufacturerName ?? 'Unknown manufacturer'),
+                        trailing: ElevatedButton(
+                          child: Text('Connect'),
+                          onPressed: () => {
+                          _connectToDevice(device)
+                          }
+                        ),
+                      )).toList(),
+                    );
+                  } else {
+                    return PaddedRowText(
+                    text: 'No serial devices available',
+                  ); 
+                  }
+                },
+              ),
+              StreamBuilder<String>(
+                stream: _serialService.statusStream,
+                builder: (context, snapshot) {
+                  return PaddedRowText(
+                    text: 'Status: ${snapshot.data ?? 'Idle'}\n',
+                  );
+                },
+              ),
+              PaddedRowText(
+                text: 'Robot state: $robotState',
+              ),
+              StreamBuilder<String>(
+                stream: _serialService.dataStream,
+                builder: (context, snapshot) {
+                  return PaddedRowText(
+                    text: 'Data: ${snapshot.data ?? 'N/A'}\n',
+                  );
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    labelText: 'Enter command',
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.send),
+                      onPressed: () {
+                        _sendSerialData(_textController.text);
+                        _textController.clear(); 
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ): Container(),
+      
+          // Robot Buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ElevatedButton(
+                onPressed: ()=> {_sendSerialData('sumo')},
+                child: Text('Sumobot esp32'),
+              ),
+              if (widget.additionalButton != null) widget.additionalButton!,
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SpeedSlider(onChange: (speed)=> {_sendSerialData('set_speed $speed')}),
+          )
+        ],
+      )
+      ]
     );
   }
 }
@@ -227,27 +266,31 @@ class SpeedSliderState extends State<SpeedSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Slider(
-          value: _currentSliderValue,
-          min: 0,
-          max: 255,
-          divisions: 255,
-          label: _currentSliderValue.round().toString(),
-          onChanged: (double value) {
-            setState(() {
-              _currentSliderValue = value;
-              widget.onChange(value.toInt());
-            });
-          },
-        ),
-        Text(
-          'Valor del Slider: ${_currentSliderValue.round()}',
-          style: TextStyle(fontSize: 20),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Robot speed: ${_currentSliderValue.round()}',
+            style: TextStyle(fontSize: 20, ),
+          ),
+          Slider(
+            value: _currentSliderValue,
+            min: 0,
+            max: 255,
+            divisions: 255,
+            label: _currentSliderValue.round().toString(),
+            onChanged: (double value) {
+              setState(() {
+                _currentSliderValue = value;
+                widget.onChange(value.toInt());
+              });
+            },
+          ),
+        ],
+      ),
     );
   }
 }

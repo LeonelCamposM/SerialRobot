@@ -120,7 +120,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
 
       final String objectFocus = findObjectInAOIs(barcodes, aoiRects);
       print('focus State: $objectFocus');
-      // widget.focusStateController.sink.add(objectFocus);
+      widget.focusStateController.sink.add(objectFocus);
 
       _customPaint = CustomPaint(
         painter: AOIPainter(
