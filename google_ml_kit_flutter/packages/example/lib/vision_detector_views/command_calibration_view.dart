@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -108,12 +109,19 @@ class _CommandCalibrationViewState extends State<CommandCalibrationView> {
       currentTag = _options[option]!;
 
       if (currentTag == 'Calibrate Save') {
-        await saveCalibrationData();
+        print('taggedPoints calc: ');
+        print(taggedPoints);
+        final stats = calculateCalibrationStats(taggedPoints);
+        print('stats Stored: ');
+        print(stats);
+        await saveCalibrationStats(stats);
         print('stored succesfully ');
       } else if (currentTag == 'Calibrate Load') {
-        await loadCalibrationData();
         print('taggedPoints loaded: ');
         print(taggedPoints);
+        final stats = await loadCalibrationStats();
+        print('Stats: ');
+        print(stats);
       }
       setState(() {});
     }
@@ -126,27 +134,23 @@ class _CommandCalibrationViewState extends State<CommandCalibrationView> {
     }).toList(),
   );
 
-  Future<void> saveCalibrationData() async {
+  // Para guardar las estadísticas de calibración
+  Future<void> saveCalibrationStats(Map<String, CalibrationStats> stats) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    // Serializar taggedPoints a una cadena JSON
-    final String serializedData = jsonEncode(taggedPoints.map((key, value) => MapEntry(key, value.map((e) => {'dx': e.dx, 'dy': e.dy}).toList())));
-    await prefs.setString('calibrationData', serializedData);
+    final String encodedData = jsonEncode(stats.map((key, value) => MapEntry(key, value.toJson())));
+    await prefs.setString('calibrationStats', encodedData);
   }
 
-  Future<void> loadCalibrationData() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  final String? serializedData = prefs.getString('calibrationData');
-  if (serializedData != null) {
-    final Map<String, dynamic> jsonData = jsonDecode(serializedData);
-    taggedPoints = jsonData.map((key, dynamic value) {
-      final pointsList = value as List<dynamic>;
-      final List<Offset> points = pointsList.map((item) => Offset(item['dx'].toDouble(), item['dy'].toDouble())).toList();
-      return MapEntry(key, points);
-    });
-    setState(() {}); // Actualiza la UI si es necesario después de cargar los datos
+  // Para cargar las estadísticas de calibración
+  Future<Map<String, CalibrationStats>> loadCalibrationStats() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? encodedData = prefs.getString('calibrationStats');
+    if (encodedData != null) {
+      final Map<String, dynamic> decodedData = jsonDecode(encodedData);
+      return decodedData.map((key, value) => MapEntry(key, CalibrationStats.fromJson(value)));
+    }
+    return {}; // O maneja este caso según sea necesario
   }
-}
-
 
   Future<void> _calibrateImage(InputImage inputImage) async {
     if (!_canProcess) return;
@@ -203,4 +207,76 @@ class _CommandCalibrationViewState extends State<CommandCalibrationView> {
       setState(() {});
     }
   }
+}
+
+double _mean(List<double> values) {
+  // Verifica si la lista está vacía para evitar el error
+  if (values.isEmpty) {
+    return 0.0; // Retorna un valor por defecto o maneja este caso como creas conveniente
+  }
+  return values.reduce((a, b) => a + b) / values.length;
+}
+
+// Función auxiliar para calcular la desviación estándar de una lista de valores.
+double _stdDev(List<double> values) {
+  if (values.isEmpty) {
+    return 0.0; // Retorna un valor por defecto o maneja este caso como creas conveniente
+  }
+  final double meanValue = _mean(values);
+  final num sumOfSquaredDiffs = values.map((value) => pow(value - meanValue, 2)).reduce((a, b) => a + b);
+  return sqrt(sumOfSquaredDiffs / (values.length - 1)); // N-1 para la desviación estándar de la muestra
+}
+
+
+  class CalibrationStats {
+  final double meanX;
+  final double meanY;
+  final double stdDevX;
+  final double stdDevY;
+
+  CalibrationStats(this.meanX, this.meanY, this.stdDevX, this.stdDevY);
+
+  // Método para convertir una instancia de CalibrationStats a un Map JSON.
+  Map<String, dynamic> toJson() {
+    return {
+      'meanX': meanX,
+      'meanY': meanY,
+      'stdDevX': stdDevX,
+      'stdDevY': stdDevY,
+    };
+  }
+
+  // Método para crear una instancia de CalibrationStats a partir de un Map JSON.
+  factory CalibrationStats.fromJson(Map<String, dynamic> json) {
+    return CalibrationStats(
+      json['meanX'] as double,
+      json['meanY'] as double,
+      json['stdDevX'] as double,
+      json['stdDevY'] as double,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'CalibrationStats(meanX: $meanX, meanY: $meanY, stdDevX: $stdDevX, stdDevY: $stdDevY)';
+  }
+}
+
+// Función para calcular las estadísticas de calibración para cada cuadrante.
+Map<String, CalibrationStats> calculateCalibrationStats(Map<String, List<Offset>> calibrationData) {
+  final Map<String, CalibrationStats> stats = {};
+
+  calibrationData.forEach((quadrant, points) {
+    final List<double> xValues = points.map((p) => p.dx).toList();
+    final List<double> yValues = points.map((p) => p.dy).toList();
+
+    final double meanX = _mean(xValues);
+    final double stdDevX = _stdDev(xValues);
+    final double meanY = _mean(yValues);
+    final double stdDevY = _stdDev(yValues);
+
+    stats[quadrant] = CalibrationStats(meanX, meanY, stdDevX, stdDevY);
+  });
+
+  return stats; 
 }
