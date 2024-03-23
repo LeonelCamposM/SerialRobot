@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'serial_robot_views/serial_robot_view.dart';
 import 'vision_detector_views/barcode_scanner_view.dart';
 
@@ -7,6 +8,12 @@ final StreamController<String> focusStateController = StreamController<String>.b
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Establece la orientación preferida del dispositivo a paisaje.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeRight,
+    DeviceOrientation.landscapeLeft,
+  ]);
 
   runApp(MyApp());
 }
@@ -18,49 +25,59 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
       appBar: AppBar(
-        title: Text('QR Traking robot'),
+        title: Text('QR Tracking robot'),
         centerTitle: true,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          //SerialRobotView(focusStateController: focusStateController),
-          CustomCard('Barcode Following', BarcodeScannerView(focusStateController: focusStateController)),
-        ],
+      body:ListView.builder(
+        itemCount: 2,
+        itemBuilder: (context, index) {
+          switch (index) {
+            case 0:
+              return SerialRobotView(focusStateController: focusStateController);
+            case 1:
+              return CustomButton(
+                label: 'Barcode Following',
+                viewPage: BarcodeScannerView(focusStateController: focusStateController),
+              );
+            default:
+              return Container(); 
+          }
+        },
       ),
     ));
   }
 }
 
-class CustomCard extends StatelessWidget {
-  final String _label;
-  final Widget _viewPage;
+class CustomButton extends StatelessWidget {
+  final String label;
+  final Widget viewPage;
   final bool featureCompleted;
 
-  const CustomCard(this._label, this._viewPage, {this.featureCompleted = true});
+  const CustomButton({
+    Key? key,
+    required this.label,
+    required this.viewPage,
+    this.featureCompleted = true,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 5,
-      margin: EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        tileColor: Theme.of(context).primaryColor,
-        title: Text(
-          _label,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        onTap: () {
+    return SizedBox(
+      width: 200,
+      child: ElevatedButton(
+        onPressed: () {
           if (!featureCompleted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:
-                    const Text('This feature has not been implemented yet')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('This feature has not been implemented yet')),
+            );
           } else {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => _viewPage));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => viewPage));
           }
         },
+        child: Text(label),
       ),
     );
   }
 }
+
