@@ -175,13 +175,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         width: inputImage.metadata!.size.width * 0.5,
         height: inputImage.metadata!.size.height * 0.5,
       );
-      final aoiPainter = AOIPainter(
-        imageSize: inputImage.metadata!.size,
-        rotation: inputImage.metadata!.rotation,
-        cameraLensDirection: _cameraLensDirection,
-        aoiRect: aoiRect,
-        color: Colors.green
-      );
+    
       analyzeObjectsAndDecideActions(objects, inputImage.metadata!);
       final painter = ObjectDetectorPainter(
         objects,
@@ -189,10 +183,7 @@ class _ObjectDetectorView extends State<ObjectDetectorView> {
         inputImage.metadata!.rotation,
         _cameraLensDirection,
       );
-      _customPaint = CustomPaint(
-        painter: aoiPainter, // Este se dibuja primero, por debajo
-        foregroundPainter: painter, // Este se dibuja encima, mostrando los objetos
-      );
+  
     } 
 
     _isBusy = false;
