@@ -35,22 +35,61 @@ class _SerialRobotView extends State<SerialRobotView> {
       _serialService.getPorts();
     });
     _serialService.getPorts();
+
+    final dynamicAoiCommands = {
+      ...generateDynamicAoiCommands([46, 49], 'right', 160, 100, true),
+      ...generateDynamicAoiCommands([56, 59], 'right', 160, 100, true),
+      ...generateDynamicAoiCommands([40, 43], 'left', 160, 100, false),
+      ...generateDynamicAoiCommands([50, 53], 'left', 160, 100,false),
+    };
+
+    final aoiCommands = {
+      '0-30': AoiCommand([
+        {'set_speed 255': Duration.zero},
+        {'down': Duration.zero},
+      ]),
+      '60-100': AoiCommand([
+        {'set_speed 255': Duration.zero},
+        {'down': Duration.zero},
+      ]),
+      '44-45': AoiCommand([
+        {'set_speed 0': Duration.zero},
+        {'stop': Duration.zero}, 
+      ]),
+      '54-55': AoiCommand([
+        {'set_speed 0': Duration.zero},
+        {'stop': Duration.zero}, 
+      ]),
+      ...dynamicAoiCommands,
+    };
+
     widget.focusStateController.stream.listen((data) async {
-      if (data == 'Q1' || data == 'Q0') {
-        print('focused, dont move $data');
+      if(data == 'Unfocused') {
         await _sendCommandWithDelay('stop',  Duration.zero);
-      } else if (data == 'Q4') {
-        print('unfocused, moving left$data');
-        await _sendCommandWithDelay('left',  Duration.zero);
-      } else if (data == 'Q5') {
-        print('unfocused, moving right$data');
-        await _sendCommandWithDelay('right',  Duration.zero);
-      } else if (data == 'Q2') {
-        print('unfocused, moving up$data');
-        await _sendCommandWithDelay('up',  Duration.zero);
-      } else if (data == 'Q3') {
-        print('unfocused, moving up $data');
-        await _sendCommandWithDelay('up',  Duration.zero);
+        return;
+      }
+
+      final int aoi = int.tryParse(data.replaceAll(RegExp('[^0-9]'), '')) ?? -1;
+      if (aoi == -1) return;
+
+      AoiCommand? commandToExecute;
+
+      aoiCommands.forEach((key, value) {
+        final range = key.split('-').map(int.parse).toList();
+        if (aoi >= range[0] && aoi <= range[1]) {
+          commandToExecute = value;
+        }
+      });
+
+      if (commandToExecute != null) {
+        for (final commandMap in commandToExecute!.commands) {
+          final command = commandMap.keys.first;
+          final delay = commandMap[command]!;
+          print('Executing command: $command with delay: ${delay.inMilliseconds}ms data: $data');
+          await _sendCommandWithDelay(command, delay);
+        }
+      } else {
+        print('No command found for AOI $aoi');
       }
     });
   }
@@ -64,6 +103,35 @@ class _SerialRobotView extends State<SerialRobotView> {
     super.dispose();
   }
 
+ int calculateSpeed(int aoi, List<int> aoiRange, int maxSpeed, int minSpeed,  bool increasingWithAoi) {
+    double fraction;
+    if (increasingWithAoi) {
+      // Para movimientos donde la velocidad aumenta con el valor de AOI
+      fraction = (aoi - aoiRange[0]) / (aoiRange[1] - aoiRange[0]);
+    } else {
+      // Para movimientos donde la velocidad disminuye con el valor de AOI
+      fraction = (aoiRange[1] - aoi) / (aoiRange[1] - aoiRange[0]);
+    }
+    final int speed = minSpeed + ((maxSpeed - minSpeed) * fraction).round();
+    return speed;
+  }
+
+
+  
+  Map<String, AoiCommand> generateDynamicAoiCommands(List<int> aoiRange, String action, int maxSpeed, int minSpeed, bool increasingWithAoi) {
+    final Map<String, AoiCommand> aoiCommands = {};
+
+    // Ajusta para generar comandos para cada AOI en el rango
+    for (int aoi = aoiRange[0]; aoi <= aoiRange[1]; aoi++) {
+      int speed = calculateSpeed(aoi, aoiRange, maxSpeed, minSpeed, increasingWithAoi);
+      aoiCommands['$aoi-$aoi'] = AoiCommand([
+        {'set_speed $speed': Duration.zero},
+        {action: Duration.zero},
+      ]);
+    }
+
+    return aoiCommands;
+  }
 
   void _sendSerialData(String command) {
     _serialService.sendSerialData(command);
@@ -293,4 +361,9 @@ class SpeedSliderState extends State<SpeedSlider> {
       ),
     );
   }
+}
+
+class AoiCommand {
+  final List<Map<String, Duration>> commands;
+  AoiCommand(this.commands);
 }

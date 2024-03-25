@@ -68,7 +68,6 @@ class SerialService {
 
   Future<void> sendSerialData(String command) async {
     if (_port == null) {
-      print('Serial port is not connected.');
       return;
     }
     final String data = '$command\r\n';

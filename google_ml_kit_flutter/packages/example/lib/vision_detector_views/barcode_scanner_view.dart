@@ -24,6 +24,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   List<Rect> aoiRects = [];
   List<Color> aoiColors = [];
   List<Rect> scaledAOIs = [];
+   bool paintAOIS = true;
 
   @override
   void dispose() {
@@ -110,8 +111,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     if (inputImage.metadata?.size != null && inputImage.metadata?.rotation != null) {
       final Size imageSize = inputImage.metadata!.size;
       if(aoiRects.isEmpty){
-        final newRows = 3;
-        final newColumns = 3;
+        final newRows = 10;
+        final newColumns = 10;
         setState(() {
           aoiRects = generateGridAOIs(imageSize, newRows, newColumns);
           aoiColors = generateGridColors(newRows * newColumns, [Colors.blue]);
@@ -119,20 +120,19 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       }
 
       final String objectFocus = findObjectInAOIs(barcodes, aoiRects);
-      print('focus State: $objectFocus');
       widget.focusStateController.sink.add(objectFocus);
 
       _customPaint = CustomPaint(
-        painter: AOIPainter(
+        painter: true ? AOIPainter(
           imageSize: inputImage.metadata!.size,
           rotation: inputImage.metadata!.rotation,
           cameraLensDirection: _cameraLensDirection,
           aoiRects: aoiRects,
           colors: aoiColors,
-           onAOIsPainted: (List<Rect> aois) {
+          onAOIsPainted: (List<Rect> aois) {
             scaledAOIs = aois;
           },
-        ),
+        ) : null, 
         foregroundPainter: BarcodeDetectorPainter(
           barcodes,
           inputImage.metadata!.size,
@@ -141,6 +141,10 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
           objectFocus
         ),
       );
+
+      if(paintAOIS){
+        paintAOIS = false;
+      }
     }
 
     _isBusy = false;
