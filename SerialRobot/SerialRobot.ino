@@ -1,85 +1,59 @@
 bool shouldStream = false;
 int robotSpeed = 255;
+const char MAX_MSG_SZ = 60;
+char msg_buf[MAX_MSG_SZ] = "";
+const String robot_type = "DIY";
 
-void setup() {
-  Serial.begin(115200);
-  Serial.println();
-  SetupMotorDriver();
-  SetupCamera();
-  SetupSensors();
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
-}
+//Heartbeat
+unsigned long heartbeat_interval = -1;
+unsigned long heartbeat_time = 0;
 
-void sendInParts(String data, int partSize) {
-  for (int i = 0; i < data.length(); i += partSize) {
-    String part = data.substring(i, min((unsigned int)(i + partSize), data.length()));
-    Serial.print("{\"part\":\"");
-    Serial.print(part);
-    if (i + partSize < data.length()) {
-      Serial.println("\",\"cont\":true}");
-    } else {
-      Serial.println("\",\"end\":true}");
-    }
-  }
-}
+//Vehicle Control
+int ctrl_left = 0;
+int ctrl_right = 0;
 
-void lineFollower() {
-  int rightLineDetected = isRightLineDetected(); 
-  int leftLineDetected = isLeftLineDetected();  
-  if (rightLineDetected == 0 && leftLineDetected == 0) {
-    Serial.println("{\"followerstate\":\"noLineDetected" "\"}");
-    digitalWrite(LED_BUILTIN, LOW); 
-    goForward(120);
-    delay(100);
-  } else if(leftLineDetected == 1 && rightLineDetected == 1){
-    Serial.println("{\"followerstate\":\"bothLinesDetected" "\"}");
-    digitalWrite(LED_BUILTIN, HIGH);
-    stopMovement();
-    delay(100);
-  }
-  else if (rightLineDetected == 1 && leftLineDetected == 0) {
-    Serial.println("{\"followerstate\":\"rightLineDetected" "\"}");
-    digitalWrite(LED_BUILTIN, LOW);
-    goRight(120);
-    delay(100); 
-  }
-  else if (leftLineDetected == 1 && rightLineDetected == 0) {
-    Serial.println("{\"followerstate\":\"leftLineDetected" "\"}");
-    digitalWrite(LED_BUILTIN, LOW);
-    goLeft(120);
-    delay(100); 
-  }
-}
-
-void sumoBot(){
-  int distance = getDistance();
-  if (isRightLineDetected() == 1 || isLeftLineDetected() == 1) {
-    Serial.println("{\"Sumostate\":\"Line Detected" "\"}");
-    digitalWrite(LED_BUILTIN, HIGH);
-    stopMovement();
-    goBackward(255);
-    delay(800);
-    goRight(255);
-    delay(500);
-  } else {
-    if (distance <= 80) {
-      Serial.println("{\"Sumostate\":\"Forward 255" "\"}");
-      digitalWrite(LED_BUILTIN, LOW);
-      goForward(255);
-    } else {
-      Serial.println("{\"Sumostate\":\"Forward 180" "\"}");
-      digitalWrite(LED_BUILTIN, HIGH);
-      goForward(180);
-    }
-  }
-}
 
 void printSensorsData(){
   String distance = String(getDistance());
   String rightLineDetected = String(isRightLineDetected());
   String leftLineDetected = String(isLeftLineDetected());
   Serial.println("{\"distance\":" + distance + ", \"rightLineDetected\":" + rightLineDetected + ", \"leftLineDetected\":" + leftLineDetected + "}");
+}
+
+ void process_feature_msg() {
+  String msg = "f" + robot_type + ":";
+  msg += "s:";
+  sendData(msg);
+} 
+
+void process_heartbeat_msg(int heartbeat_interval) {
+  heartbeat_time = millis();
+  Serial.print("Heartbeat Interval: ");
+  Serial.println(heartbeat_interval);
+}
+
+void sendData(String data) {
+  Serial.print(data);
+  Serial.println();
+}
+
+void process_ctrl_msg() {
+  char *tmp;                    // this is used by strtok() as an index
+  tmp = strtok(msg_buf, ",:");  // replace delimiter with \0
+  ctrl_left = atoi(tmp);        // convert to int
+  tmp = strtok(NULL, ",:");     // continues where the previous call left off
+  ctrl_right = atoi(tmp);       // convert to int
+#if DEBUG
+  Serial.print("Control: ");
+  Serial.print(ctrl_left);
+  Serial.print(",");
+  Serial.println(ctrl_right);
+#endif
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println();
 }
 
 void loop() {
@@ -105,17 +79,14 @@ void loop() {
       goRight(robotSpeed);
     } else if (command == "stop") {
       stopMovement();
-    } else if (command == "photo") {
-      String photoInfo = takePhoto();
-      sendInParts(photoInfo, 200); 
-    }  else if (command == "sensors") {
+    } else if (command == "sensors") {
       printSensorsData();
-    }  else if (command == "sumo") {
-      // Realtime desicion making
-      while (true) {
-        sumoBot();
-      } 
-    } else {
+    } else if (command.startsWith("f")) {
+      process_feature_msg();
+    }else if (command.startsWith("h")) {
+      int interval = command.substring(10).toInt();
+      process_heartbeat_msg(interval);
+    }else {
       shouldStream = false;
       Serial.println("{\"error\":\"Invalid command "+ command + "\"}");
     }
@@ -124,4 +95,3 @@ void loop() {
     }
   }
 }
-
