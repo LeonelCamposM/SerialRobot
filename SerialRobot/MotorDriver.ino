@@ -17,39 +17,32 @@ void SetupMotorDriver() {
   digitalWrite(stbyPin, HIGH);
 }
 
-void controlMotorA(bool direction, int speed) {
-  digitalWrite(motorAInput1, direction);
-  digitalWrite(motorAInput2, !direction);
-  analogWrite(motorAPWM, speed);
+void controlMotorA(int value) {
+  if (value > 0) {
+    digitalWrite(motorAInput1, HIGH);
+    digitalWrite(motorAInput2, LOW);
+  } else if (value < 0) {
+    digitalWrite(motorAInput1, LOW);
+    digitalWrite(motorAInput2, HIGH);
+    value = -value; // Make value positive for PWM
+  } else {
+    digitalWrite(motorAInput1, LOW);
+    digitalWrite(motorAInput2, LOW);
+  }
+  analogWrite(motorAPWM, value);
 }
 
-void controlMotorB(bool direction, int speed) {
-  digitalWrite(motorBInput1, direction);
-  digitalWrite(motorBInput2, !direction);
-  analogWrite(motorBPWM, speed);
-}
-
-void goForward(int speed) {
-  controlMotorA(false, speed);
-  controlMotorB(false, speed);
-}
-
-void goBackward(int speed) {
-  controlMotorA(true, speed);
-  controlMotorB(true, speed);
-}
-
-void goRight(int speed) {
-  controlMotorA(false, speed);
-  controlMotorB(true, speed);
-}
-
-void goLeft(int speed) {
-  controlMotorA(true, speed);
-  controlMotorB(false, speed);
-}
-
-void stopMovement() {
-  controlMotorA(false, 0);
-  controlMotorB(false, 0);
+void controlMotorB(int value) {
+  if (value > 0) {
+    digitalWrite(motorBInput1, HIGH);
+    digitalWrite(motorBInput2, LOW);
+  } else if (value < 0) {
+    digitalWrite(motorBInput1, LOW);
+    digitalWrite(motorBInput2, HIGH);
+    value = -value; // Make value positive for PWM
+  } else {
+    digitalWrite(motorBInput1, LOW);
+    digitalWrite(motorBInput2, LOW);
+  }
+  analogWrite(motorBPWM, value);
 }

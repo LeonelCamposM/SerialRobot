@@ -1,7 +1,6 @@
+#define DEBUG 1
 bool shouldStream = false;
 int robotSpeed = 255;
-const char MAX_MSG_SZ = 60;
-char msg_buf[MAX_MSG_SZ] = "";
 const String robot_type = "DIY";
 
 //Heartbeat
@@ -28,8 +27,8 @@ void printSensorsData(){
 
 void process_heartbeat_msg(int heartbeat_interval) {
   heartbeat_time = millis();
-  Serial.print("Heartbeat Interval: ");
-  Serial.println(heartbeat_interval);
+  // Serial.print("Heartbeat Interval: ");
+  // Serial.println(heartbeat_interval);
 }
 
 void sendData(String data) {
@@ -37,30 +36,36 @@ void sendData(String data) {
   Serial.println();
 }
 
-void process_ctrl_msg() {
-  char *tmp;                    // this is used by strtok() as an index
-  tmp = strtok(msg_buf, ",:");  // replace delimiter with \0
-  ctrl_left = atoi(tmp);        // convert to int
-  tmp = strtok(NULL, ",:");     // continues where the previous call left off
-  ctrl_right = atoi(tmp);       // convert to int
-#if DEBUG
-  Serial.print("Control: ");
-  Serial.print(ctrl_left);
-  Serial.print(",");
-  Serial.println(ctrl_right);
-#endif
+// Assuming command is in the form "c<left>,<right>"
+// Remove the leading 'c' and parse the left and right values
+void process_ctrl_msg(String command) {  // Asegúrate de pasar la cadena de comando como argumento
+  command.remove(0, 1); 
+  int commaIndex = command.indexOf(',');  
+  int leftValue = command.substring(0, commaIndex).toInt();  
+  int rightValue = command.substring(commaIndex + 1).toInt();  
+
+  ctrl_left = constrain(leftValue, -255, 255);
+  ctrl_right = constrain(rightValue, -255, 255);
+
+  #if DEBUG
+    Serial.print("ACK Control: ");
+    Serial.print(leftValue);  
+    Serial.print(",");
+    Serial.println(rightValue); 
+  #endif
 }
+
 
 void setup() {
   Serial.begin(115200);
   Serial.println();
+  SetupMotorDriver();
 }
 
 void loop() {
   if (Serial.available() > 0) {
     String command = Serial.readStringUntil('\n');
     command.trim();
-
     if (command == "start_stream") {
       shouldStream = true;
     } else if (command == "stop_stream") {
@@ -68,24 +73,14 @@ void loop() {
     }else if (command.startsWith("set_speed")) {
       int speed = command.substring(10).toInt();
       robotSpeed = speed;
-    }
-    else if (command == "up") {
-      goForward(robotSpeed);
-    } else if (command == "down") {
-      goBackward(robotSpeed);
-    } else if (command == "left") {
-      goLeft(robotSpeed);
-    } else if (command == "right") {
-      goRight(robotSpeed);
-    } else if (command == "stop") {
-      stopMovement();
     } else if (command == "sensors") {
       printSensorsData();
     } else if (command.startsWith("f")) {
       process_feature_msg();
     }else if (command.startsWith("h")) {
-      int interval = command.substring(10).toInt();
-      process_heartbeat_msg(interval);
+      process_heartbeat_msg(22);
+    }else if (command.startsWith("c")) {
+      process_ctrl_msg(command);
     }else {
       shouldStream = false;
       Serial.println("{\"error\":\"Invalid command "+ command + "\"}");
@@ -93,5 +88,7 @@ void loop() {
     if(shouldStream) {
       printSensorsData();
     }
+    controlMotorA(ctrl_left);
+    controlMotorB(ctrl_right);
   }
 }
