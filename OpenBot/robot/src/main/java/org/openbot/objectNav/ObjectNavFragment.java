@@ -147,7 +147,9 @@ public class ObjectNavFragment extends CameraFragment {
 
     binding.cameraToggle.setOnClickListener(v -> toggleCamera());
 
-    binding.mirrorControl.setOnClickListener(v -> mirrorControl());
+    if (binding.mirrorControl != null) {
+      binding.mirrorControl.setOnClickListener(v -> mirrorControl());
+    }
 
     List<String> models =
         getModelNames(f -> f.type.equals(Model.TYPE.DETECTOR) && f.pathType != Model.PATH_TYPE.URL);

@@ -368,11 +368,6 @@ public class Vehicle {
   public void connectUsb() {
     if (usbConnection == null) usbConnection = new UsbConnection(context, baudRate);
     usbConnected = usbConnection.startUsbConnection();
-    if (usbConnected) {
-      if (heartbeatTimer == null) {
-        startHeartbeat();
-      }
-    }
   }
 
   public void disconnectUsb() {
