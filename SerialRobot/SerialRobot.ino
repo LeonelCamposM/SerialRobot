@@ -27,8 +27,6 @@ void printSensorsData(){
 
 void process_heartbeat_msg(int heartbeat_interval) {
   heartbeat_time = millis();
-  // Serial.print("Heartbeat Interval: ");
-  // Serial.println(heartbeat_interval);
 }
 
 void sendData(String data) {
@@ -38,7 +36,7 @@ void sendData(String data) {
 
 // Assuming command is in the form "c<left>,<right>"
 // Remove the leading 'c' and parse the left and right values
-void process_ctrl_msg(String command) {  // Asegúrate de pasar la cadena de comando como argumento
+void process_ctrl_msg(String command) { 
   command.remove(0, 1); 
   int commaIndex = command.indexOf(',');  
   int leftValue = command.substring(0, commaIndex).toInt();  
@@ -46,13 +44,6 @@ void process_ctrl_msg(String command) {  // Asegúrate de pasar la cadena de com
 
   ctrl_left = constrain(leftValue, -255, 255);
   ctrl_right = constrain(rightValue, -255, 255);
-
-  #if DEBUG
-    Serial.print("ACK Control: ");
-    Serial.print(leftValue);  
-    Serial.print(",");
-    Serial.println(rightValue); 
-  #endif
 }
 
 
