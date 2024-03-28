@@ -196,9 +196,12 @@ public class MultiBoxTracker {
       rightControl = 0.0f;
     }
 
-    return new Control(
-        (0 > sensorOrientation) ? rightControl : leftControl,
-        (0 > sensorOrientation) ? leftControl : rightControl);
+    Control finalControl = new Control(
+            (0 > sensorOrientation) ? rightControl : leftControl,
+            (0 > sensorOrientation) ? leftControl : rightControl);
+    logger.i("Final control sent: Left = "
+            + finalControl.getLeft() + ", Right = " + finalControl.getRight());
+    return finalControl;
   }
 
   public synchronized void draw(final Canvas canvas) {
