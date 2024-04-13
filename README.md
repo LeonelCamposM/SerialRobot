@@ -9,11 +9,13 @@ This repository represents the adventure of constructing a personal robot, offer
   <img src="Hardware/Video/SumoBotBehavior.png" alt="Sumo Video" width="400"/>
 </a>
 </br>
+
 - **Remote Operation**: Control the robot from a distance, offering a wide range of applications from remote surveillance to telepresence.
 <a href="Hardware/Video/AccessPointWebServer.mp4">
   <img src="Hardware/Video/AccessPointWebServer.png" alt="Server Video" width="300"/>
 </a>
 </br>
+
 - **OpenBot Interface**: Integrates with the OpenBot framework to leverage smartphones as an intelligent onboard control system.
 <a href="Hardware/Video/ObjectTracking.mp4">
   <img src="Hardware/Video/ObjectTracking.png" alt="Server Video" width="400"/>
