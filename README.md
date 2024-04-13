@@ -1,15 +1,24 @@
-# MobileRobot
+# SerialRobot
+The SerialRobot project encapsulates the essence of DIY and the maker movement, emphasizing hands-on experience in both building and programming robots. It stands as a experience of the joy found in crafting something tangible and interactive that bridges the physical and digital realms.
 
-## Overview
-The MobileRobot project embodies the spirit of DIY and the maker movement, focusing on hands-on experience in building and programming robots. It is a testament to the joy of creating something tangible and interactive, merging the physical with the digital. This repository serves as a testament to the adventure of constructing a personal robot and the rich learning experiences that come with integrating various software technologies and experimenting with hardware modifications.
-
-## Problem Statement
-The journey of learning robotics is as much about the process as it is about the outcome. In a field dominated by pre-built solutions, there's immense educational value in getting your hands dirty with the nuts and bolts of robot construction. MobileRobot is more than a platform; it's an ongoing experiment that encourages the exploration of software technologies and hardware modifications. It is for those who find excitement in not just operating a robot, but in understanding and crafting the very elements that make it tick.
+This repository represents the adventure of constructing a personal robot, offering rich learning experiences through the integration of diverse software technologies and the exploration of hardware modifications. SerialRobot goes beyond a mere platform; it represents an ongoing experiment about the mechanics, electronics and software used in robot construction, fostering a deeper understanding of the elements that bring these machines to life.
 
 ## Features
 - **SumoBot**: A competitive sumo wrestling mode that challenges other robots in power and strategy.
+<a href="Hardware/Video/SumoBotBehavior.mp4">
+  <img src="Hardware/Video/SumoBotBehavior.png" alt="Sumo Video" width="400"/>
+</a>
+</br>
 - **Remote Operation**: Control the robot from a distance, offering a wide range of applications from remote surveillance to telepresence.
+<a href="Hardware/Video/AccessPointWebServer.mp4">
+  <img src="Hardware/Video/AccessPointWebServer.png" alt="Server Video" width="300"/>
+</a>
+</br>
 - **OpenBot Interface**: Integrates with the OpenBot framework to leverage smartphones as an intelligent onboard control system.
+<a href="Hardware/Video/ObjectTracking.mp4">
+  <img src="Hardware/Video/ObjectTracking.png" alt="Server Video" width="400"/>
+</a>
+</br>
 
 ## Getting Started
 To begin using MobileRobot:

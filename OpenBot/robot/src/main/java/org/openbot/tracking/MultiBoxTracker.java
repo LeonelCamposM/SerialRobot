@@ -224,15 +224,14 @@ public class MultiBoxTracker {
       borderedText.drawText(
           canvas, trackedPos.left + cornerSize, trackedPos.top, labelString + "%", boxPaint);
 
-      //      if (recognition == trackedObjects.get(0)) {
-      //        borderedText.drawText(
-      //                canvas,
-      //                trackedPos.left + cornerSize,
-      //                trackedPos.top + 40.0f,
-      //                String.format(Locale.US, "%.2f", leftControl) + "," + String.format("%.2f",
-      // rightControl),
-      //                boxPaint);
-      //      }
+      if (recognition == trackedObjects.get(0)) {
+        borderedText.drawText(
+        canvas,
+        trackedPos.left + cornerSize,
+        trackedPos.top + 40.0f,
+        String.format(Locale.US, "%.2f", leftControl) + "," + String.format("%.2f", rightControl),
+        boxPaint);
+      }
     }
   }
 
