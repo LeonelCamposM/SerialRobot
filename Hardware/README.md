@@ -1,4 +1,4 @@
-# MobileRobot Hardware
+# SerialRobot Hardware
 
 ## Overview
 The purpose of this section is to provide a detailed description of the design and construction process of the robot used in this project.
@@ -11,7 +11,7 @@ The purpose of this section is to provide a detailed description of the design a
 The schematics and PCB design were created by me, and the design files are made available under the MIT License. See the [LICENSE.md](LICENSE.md) file for the full license text.
 
 ## Materials
-To build the MobileRobot, you'll need the following hardware components. Visual references for each part are provided below.
+To build the SerialRobot, you'll need the following hardware components. Visual references for each part are provided below.
 
 <table>
 <tr>
