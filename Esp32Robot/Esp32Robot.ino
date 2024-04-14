@@ -91,6 +91,11 @@ void loop() {
       }
     }else if (command.startsWith("w")) {
       setupWebServer();
+    }else if (command.startsWith("o")) {
+      SetupOta();
+      while( true) {
+        handleOta();
+      }
     }else {
       Serial.println("{\"error\":\"Invalid command "+ command + "\"}");
     }
