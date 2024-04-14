@@ -6,7 +6,7 @@ const int motorBInput2 = D6;
 const int motorBPWM = D7;
 const int stbyPin = D4;  // Standby
 
-void SetupMotorDriver() {
+void setupMotorDriver() {
   pinMode(motorAInput1, OUTPUT);
   pinMode(motorAInput2, OUTPUT);
   pinMode(motorAPWM, OUTPUT);
@@ -24,7 +24,7 @@ void controlMotorA(int value) {
   } else if (value < 0) {
     digitalWrite(motorAInput1, LOW);
     digitalWrite(motorAInput2, HIGH);
-    value = -value; // Make value positive for PWM
+    value = -value;
   } else {
     digitalWrite(motorAInput1, LOW);
     digitalWrite(motorAInput2, LOW);
@@ -39,10 +39,35 @@ void controlMotorB(int value) {
   } else if (value < 0) {
     digitalWrite(motorBInput1, LOW);
     digitalWrite(motorBInput2, HIGH);
-    value = -value; // Make value positive for PWM
+    value = -value; 
   } else {
     digitalWrite(motorBInput1, LOW);
     digitalWrite(motorBInput2, LOW);
   }
   analogWrite(motorBPWM, value);
+}
+
+void stop() {
+  controlMotorA(0);  
+  controlMotorB(0);  
+}
+
+void moveForward(int speed) {
+  controlMotorA(speed);  
+  controlMotorB(speed);   
+}
+
+void moveBackward(int speed) {
+  controlMotorA(-speed);   
+  controlMotorB(-speed); 
+}  
+
+void turnRight(int speed) {
+  controlMotorA(speed);   
+  controlMotorB(-speed); 
+}
+
+void turnLeft(int speed) {
+  controlMotorA(-speed);   
+  controlMotorB(speed); 
 }

@@ -3,7 +3,7 @@
 #define RIGHT_SENSOR D0
 #define LEFT_SENSOR D1
 
-void SetupSensors() {
+void setupSensors() {
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
 }
