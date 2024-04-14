@@ -24,8 +24,18 @@ To prepare your ESP32 in the Arduino IDE, follow these configuration steps:
 
 ## Code Design
 
-The following UML diagram illustrates the architecture of the software system. It includes the key classes, `Esp32Robot`, `MotorDriver`, `Sensors`, and `Camera`.
- 
-The `Esp32Robot` class is the central unit controlling various functions, depicted by the composition links to `MotorDriver` for motion control, `Sensors` for environmental interaction, and `Camera` for visual data processing. These relationships are crucial for understanding the overall functionality and structure of the robotic system.
+The following UML diagram illustrates the architecture of the software system.
 
+- ### Core Classes: 
+    `Esp32Robot:` Main controller of the robotic system. It directly manages core functions by interacting with the  `Camera`, `MotorDriver`, and   `Sensors` modules. It exposes functionalities of these modules through a serial interface, allowing for command processing, data sending, and the execution of a main loop for robot operations.
+</br>
+
+- ### Other Classes and Their Specific Tasks:
+    `WebServer:` A class responsible for setting up the camera server. This enables remote streaming and control over the robot's movements and camera through a web interface.
+
+    `Strategy:` Contains logic that decides the robot's movement or actions based on sensor data and internal algorithms.
+
+    `OTA (Over-The-Air) Update:` Allow the robot's software to be updated remotely without physical access to the device.
+
+</br>
 <img src="Design/UML.svg" alt="Base Circuit" width="800"/>
