@@ -182,22 +182,3 @@ In order to make this robot compatible with open bot i made the following change
     <td><img src="Img/USBC.jpg" alt="Sensors Circuit" width="400"/></td>
 </tr>
 </table>
-
-
-## Robot capabilities summary:
-- **SumoBot**: A competitive sumo wrestling mode that challenges other robots in power and strategy.
-<a href="Video/SumoBotBehavior.mp4">
-  <img src="Video/SumoBotBehavior.png" alt="Sumo Video" width="400"/>
-</a>
-</br>
-
-- **Remote Operation**: Control the robot from a distance, offering a wide range of applications from remote surveillance to telepresence.
-<a href="Video/AccessPointWebServer.mp4">
-  <img src="Video/AccessPointWebServer.png" alt="Server Video" width="300"/>
-</a>
-</br>
-
-- **OpenBot Interface**: Integrates with the OpenBot framework to leverage smartphones as an intelligent onboard control system.
-<a href="Video/ObjectTracking.mp4">
-  <img src="Video/ObjectTracking.png" alt="Server Video" width="400"/>
-</a>
