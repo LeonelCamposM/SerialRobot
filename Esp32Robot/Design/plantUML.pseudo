@@ -9,8 +9,8 @@ class Camera {
 class Esp32Robot {
     - robotSpeed: int = 255
     - robot_type: String = "DIY"
-    - ctrl_left: int = 0;
-    - ctrl_right: int = 0;
+    - ctrl_left: int = 0
+    - ctrl_right: int = 0
     + printSensorsData(): void
     + process_feature_msg(): void
     + sendData(data: String): void
@@ -43,8 +43,31 @@ class Sensors {
     + isLeftLineDetected(): int
 }
 
-Esp32Robot ..> Sensors : composition (1 - n)
-Esp32Robot ..> MotorDriver : composition (1 - 1)
-Esp32Robot ..> Camera : composition (1 - 1)
+class Strategy {
+    + executeStrategy(): void
+    + scanForEnemies(): void
+}
 
+class OTA {
+    + SetupOta(): void
+    + handleOta(): void
+}
+
+class WebServer {
+    + setup(): void
+    + startCameraServer(): void
+}
+
+Esp32Robot ..> Sensors
+Esp32Robot ..> MotorDriver
+Esp32Robot ..> Camera
+Esp32Robot ..> OTA
+Esp32Robot ..> Strategy 
+
+Strategy ..> Sensors
+Strategy ..> MotorDriver
+
+Esp32Robot ..> WebServer
+WebServer ..> MotorDriver
+WebServer ..> Camera
 @enduml
