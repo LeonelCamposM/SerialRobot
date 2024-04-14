@@ -289,6 +289,18 @@ public class Vehicle {
     sendControl();
   }
 
+  public void startSumo() {
+    sendStringToDevice("sumo");
+  }
+
+  public void startOta() {
+    sendStringToDevice("o");
+  }
+
+  public void startServer() {
+    sendStringToDevice("w");
+  }
+
   private Timer noiseTimer;
 
   public void toggleNoise() {

@@ -27,6 +27,7 @@ void executeSumoBot() {
 
   if ((isRightLineDetected() || isLeftLineDetected()) && distance > 80) {
     stop();
+    delay(100);
     Serial.println("Line detected, stopping and moving backward");
     moveBackward(255);
     delay(800);

@@ -85,7 +85,7 @@ void loop() {
       process_feature_msg();
     }else if (command.startsWith("c")) {
       process_ctrl_msg(command);
-    }else if (command.startsWith("s")) {
+    }else if (command.startsWith("sumo")) {
       while( true) {
         executeSumoBot();
       }

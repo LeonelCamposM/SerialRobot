@@ -53,13 +53,13 @@ void stop() {
 }
 
 void moveForward(int speed) {
-  controlMotorA(speed);  
-  controlMotorB(speed);   
+  controlMotorA(-speed);   
+  controlMotorB(-speed);  
 }
 
 void moveBackward(int speed) {
-  controlMotorA(-speed);   
-  controlMotorB(-speed); 
+  controlMotorA(speed);  
+  controlMotorB(speed); 
 }  
 
 void turnRight(int speed) {

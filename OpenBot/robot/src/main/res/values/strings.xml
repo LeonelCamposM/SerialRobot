@@ -109,6 +109,9 @@
   <string name="backward">Backward</string>
   <string name="forward">Forward</string>
   <string name="stop">Stop</string>
+  <string name="sumo">Sumo</string>
+  <string name="servers">Server</string>
+  <string name="ota">Ota</string>
   <string name="motors">Motors</string>
   <string name="leds">LEDs</string>
   <string name="lights">Lights</string>

@@ -64,11 +64,11 @@ public class RobotInfoFragment extends ControlsFragment {
           vehicle.sendLightIntensity(value / 100, value / 100);
         });
 
-    binding.motorsForwardButton.setOnClickListener(v -> vehicle.setControl(0.75f, 0.75f));
+    binding.motorsSumoButton.setOnClickListener(v -> vehicle.startSumo());
 
-    binding.motorsBackwardButton.setOnClickListener(v -> vehicle.setControl(-0.75f, -0.75f));
+    binding.motorsOtaButton.setOnClickListener(v -> vehicle.startOta());
 
-    binding.motorsStopButton.setOnClickListener(v -> vehicle.setControl(0.0f, 0.0f));
+    binding.motorsServerButton.setOnClickListener(v -> vehicle.startServer());
 
     refreshGui();
   }

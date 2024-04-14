@@ -344,45 +344,48 @@
             android:textColor="@android:color/black" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/motors_forward_button"
+            android:id="@+id/motors_sumo_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:backgroundTint="@color/openBotBlue"
             android:minHeight="48dp"
             android:padding="16dp"
-            android:text="@string/forward"
+            android:text="@string/sumo"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textColor="#FFFFFF"
-            tools:ignore="TextContrastCheck" />
+            tools:ignore="TextContrastCheck"
+            tools:text="Sumo" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/motors_backward_button"
+            android:id="@+id/motors_server_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:backgroundTint="@color/openBotBlue"
             android:minHeight="48dp"
             android:padding="16dp"
-            android:text="@string/backward"
+            android:text="@string/server"
             android:textAllCaps="false"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textColor="#FFFFFF"
-            tools:ignore="TextContrastCheck" />
+            tools:ignore="TextContrastCheck"
+            tools:text="Server" />
 
         <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/motors_stop_button"
+            android:id="@+id/motors_ota_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:backgroundTint="@color/openBotBlue"
             android:minHeight="48dp"
             android:padding="16dp"
-            android:text="@string/stop"
+            android:text="@string/ota"
             android:textAllCaps="false"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textColor="#FFFFFF"
-            tools:ignore="TextContrastCheck" />
+            tools:ignore="TextContrastCheck"
+            tools:text="Ota" />
 
     </LinearLayout>
 
