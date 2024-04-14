@@ -21,7 +21,7 @@
 #define PCLK_GPIO_NUM 13
 
 
-void SetupCamera() {
+void setupCamera() {
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
