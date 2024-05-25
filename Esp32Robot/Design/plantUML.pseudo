@@ -1,0 +1,73 @@
+@startuml
+
+class Camera {
+    - CAMERA_MODEL_XIAO_ESP32S3: define
+    + setupCamera(): void
+    + takePhoto(): String
+}
+
+class Esp32Robot {
+    - robotSpeed: int = 255
+    - robot_type: String = "DIY"
+    - ctrl_left: int = 0
+    - ctrl_right: int = 0
+    + printSensorsData(): void
+    + process_feature_msg(): void
+    + sendData(data: String): void
+    + process_ctrl_msg(command: String): void
+    + setup(): void
+    + loop(): void
+}
+
+class MotorDriver {
+    - motorAInput1: int = D10  
+    - motorAInput2: int = D9   
+    - motorAPWM: int = D8      
+    - motorBInput1: int = D5   
+    - motorBInput2: int = D6   
+    - motorBPWM: int = D7      
+    - stbyPin: int = D4     
+    + SetupMotorDriver(): void
+    + controlMotorA(value: int): void
+    + controlMotorB(value: int): void
+}
+
+class Sensors {
+    - TRIG_PIN: int = D2
+    - ECHO_PIN: int = D3
+    - RIGHT_SENSOR: int = D0
+    - LEFT_SENSOR: int = D1
+    + SetupSensors(): void
+    + getDistance(): int
+    + isRightLineDetected(): int
+    + isLeftLineDetected(): int
+}
+
+class Strategy {
+    + executeStrategy(): void
+    + scanForEnemies(): void
+}
+
+class OTA {
+    + SetupOta(): void
+    + handleOta(): void
+}
+
+class WebServer {
+    + setup(): void
+    + startCameraServer(): void
+}
+
+Esp32Robot ..> Sensors
+Esp32Robot ..> MotorDriver
+Esp32Robot ..> Camera
+Esp32Robot ..> OTA
+Esp32Robot ..> Strategy 
+
+Strategy ..> Sensors
+Strategy ..> MotorDriver
+
+Esp32Robot ..> WebServer
+WebServer ..> MotorDriver
+WebServer ..> Camera
+@enduml
