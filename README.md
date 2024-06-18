@@ -19,7 +19,7 @@ This repository represents the adventure of constructing a personal robot, offer
 <table>
   <tr>
     <td align="center">
-      <a href="Hardware/Video/SumoBotBehavior.mp4">
+      <a href="https://www.instagram.com/p/C70aHm1NnLW/">
         <img src="Hardware/Img/FinalLaserFront.jpg" alt="Sumo Video" width="400"/>
       </a>
       <div align="center">Click the image to watch the video</div>
